@@ -76,7 +76,6 @@ async def get_current_customer(token: str = Depends(oauth2_scheme)):
 @router.post("/register", response_model=Token)
 async def register_customer(register_data: CustomerRegister):
     """Register a new customer for portal access"""
-    db = await init_db()
     
     # Check if customer exists
     customer = await db.customers.find_one({"id": register_data.customer_id})
