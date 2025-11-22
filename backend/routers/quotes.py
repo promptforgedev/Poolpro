@@ -17,7 +17,7 @@ def init_db(database):
 @router.get("/", response_model=List[Quote])
 async def get_all_quotes():
     """Get all quotes"""
-    quotes = list(db.quotes.find({}, {"_id": 0}))
+    quotes = await db.quotes.find({}, {"_id": 0}).to_list(1000)
     return quotes
 
 
