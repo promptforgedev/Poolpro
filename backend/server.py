@@ -70,9 +70,15 @@ async def get_status_checks():
 
 # Initialize database connection for routers
 customers.init_db(db)
+quotes.init_db(db)
+jobs.init_db(db)
+invoices.init_db(db)
 
 # Include additional routers in api_router
 api_router.include_router(customers.router)
+api_router.include_router(quotes.router)
+api_router.include_router(jobs.router)
+api_router.include_router(invoices.router)
 
 # Include the router in the main app
 app.include_router(api_router)
