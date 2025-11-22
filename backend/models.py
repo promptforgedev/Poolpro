@@ -310,3 +310,41 @@ class RouteUpdate(BaseModel):
 
 class RouteJobReorder(BaseModel):
     jobs: List[str]  # New order of job IDs
+
+
+
+# Alert Models
+class Alert(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: f"alert-{str(uuid.uuid4())[:8]}")
+    type: Literal["chemical", "flow", "leak", "time", "cost"]
+    severity: Literal["high", "medium", "low"]
+    title: str
+    message: str
+    customer_id: str
+    customer_name: str
+    pool_id: Optional[str] = None  # For chemical/flow/leak alerts
+    pool_name: Optional[str] = None
+    job_id: Optional[str] = None  # For time/cost alerts
+    resolved: bool = False
+    resolved_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class AlertCreate(BaseModel):
+    type: Literal["chemical", "flow", "leak", "time", "cost"]
+    severity: Literal["high", "medium", "low"]
+    title: str
+    message: str
+    customer_id: str
+    customer_name: str
+    pool_id: Optional[str] = None
+    pool_name: Optional[str] = None
+    job_id: Optional[str] = None
+
+
+class AlertUpdate(BaseModel):
+    resolved: Optional[bool] = None
+    resolved_at: Optional[datetime] = None
