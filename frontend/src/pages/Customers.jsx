@@ -145,6 +145,7 @@ const Customers = () => {
         )}
 
         {/* Customer List */}
+        {!loading && !error && (
         <div className="space-y-4">
           {filteredCustomers.map((customer) => (
             <Card key={customer.id} className="hover:shadow-md transition-shadow">
