@@ -106,7 +106,7 @@ const Customers = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-bold text-gray-900">{mockCustomers.length}</p>
+                <p className="text-3xl font-bold text-gray-900">{customers.length}</p>
                 <p className="text-sm text-gray-600 mt-1">Total Customers</p>
               </div>
             </CardContent>
@@ -115,7 +115,7 @@ const Customers = () => {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-3xl font-bold text-green-600">
-                  {mockCustomers.filter(c => c.status === 'active').length}
+                  {customers.filter(c => c.status === 'active').length}
                 </p>
                 <p className="text-sm text-gray-600 mt-1">Active</p>
               </div>
@@ -125,7 +125,7 @@ const Customers = () => {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-3xl font-bold text-blue-600">
-                  {mockCustomers.filter(c => c.autopay).length}
+                  {customers.filter(c => c.autopay).length}
                 </p>
                 <p className="text-sm text-gray-600 mt-1">Autopay Enabled</p>
               </div>
@@ -135,13 +135,14 @@ const Customers = () => {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-3xl font-bold text-gray-900">
-                  {mockCustomers.reduce((sum, c) => sum + c.pools.length, 0)}
+                  {customers.reduce((sum, c) => sum + c.pools.length, 0)}
                 </p>
                 <p className="text-sm text-gray-600 mt-1">Total Pools</p>
               </div>
             </CardContent>
           </Card>
         </div>
+        )}
 
         {/* Customer List */}
         <div className="space-y-4">
