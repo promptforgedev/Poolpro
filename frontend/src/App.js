@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
-import Routes from './pages/RoutesPage';
+import RoutesPage from './pages/RoutesPage';
 import Jobs from './pages/Jobs';
 import Customers from './pages/Customers';
 import Invoices from './pages/Invoices';
@@ -17,7 +17,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/routes" element={<Routes />} />
+          <Route path="/routes" element={<RoutesPage />} />
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/invoices" element={<Invoices />} />
