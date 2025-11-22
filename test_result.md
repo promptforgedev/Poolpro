@@ -302,15 +302,18 @@ backend:
 
   - task: "Alert CRUD API endpoints"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routers/alerts.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created alerts router with 8 endpoints: GET all alerts (with filters for resolved, severity, type, customer_id), GET alert by ID, POST create alert, PUT update alert, DELETE alert, POST resolve alert, and GET stats/summary for alert analytics. Supports all alert types: chemical, flow, leak, time, cost. Severity levels: high, medium, low. Alerts track customer_id, customer_name, optional pool_id/pool_name for physical alerts, optional job_id for time/cost alerts. Includes resolved status and resolved_at timestamp. Connected to MongoDB."
+      - working: true
+        agent: "testing"
+        comment: "All 8 alert API endpoints tested successfully. GET /api/alerts/ returns 9 seeded alerts with correct structure including all alert types (chemical, flow, leak, time, cost) and severities (high, medium, low). Filtering works correctly: resolved=false returns 7 unresolved alerts, resolved=true returns 2 resolved alerts, severity and type filters work properly. GET /api/alerts/{id} retrieves specific alert with correct details (tested with alert-001). POST /api/alerts/ creates new alert with auto-generated alert-{uuid} ID and proper field validation. PUT /api/alerts/{id} updates alert and automatically sets resolved_at timestamp when resolving. POST /api/alerts/{id}/resolve marks alert as resolved with automatic timestamp. DELETE /api/alerts/{id} removes alert and returns 404 on subsequent access. GET /api/alerts/stats/summary returns accurate statistics with total, unresolved, resolved counts and breakdowns by severity and type. All CRUD operations, filtering, and workflow actions working correctly with proper error handling."
 
   - task: "Alert database models"
     implemented: true
