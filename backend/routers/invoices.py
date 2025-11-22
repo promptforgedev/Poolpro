@@ -101,7 +101,7 @@ async def send_invoice(invoice_id: str):
 @router.post("/{invoice_id}/pay")
 async def pay_invoice(invoice_id: str, amount: float):
     """Record a payment for an invoice"""
-    invoice = db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
     
@@ -120,9 +120,9 @@ async def pay_invoice(invoice_id: str, amount: float):
         update_data["status"] = "paid"
         update_data["paid_date"] = datetime.now(timezone.utc).isoformat()
     
-    db.invoices.update_one({"id": invoice_id}, {"$set": update_data})
+    await db.invoices.update_one({"id": invoice_id}, {"$set": update_data})
     
-    updated_invoice = db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    updated_invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
     return {"message": f"Payment of ${amount} recorded", "invoice": updated_invoice}
 
 
