@@ -20,7 +20,7 @@ async def get_all_invoices(status: Optional[str] = None):
     query = {}
     if status:
         query["status"] = status
-    invoices = list(db.invoices.find(query, {"_id": 0}))
+    invoices = await db.invoices.find(query, {"_id": 0}).to_list(1000)
     return invoices
 
 
