@@ -33,10 +33,12 @@ class PoolProAPITester:
             "response_data": response_data
         })
     
+    # ===== QUOTES API TESTS =====
+    
     def test_get_all_quotes(self):
         """Test GET /api/quotes - should return 4 seeded quotes"""
         try:
-            response = self.session.get(f"{self.base_url}/quotes")
+            response = self.session.get(f"{self.base_url}/quotes/")
             
             if response.status_code == 200:
                 quotes = response.json()
