@@ -198,10 +198,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Customer CRUD API endpoints"
-    - "Pool management endpoints"
-    - "Database models for customers and pools"
-    - "Database seeding with initial data"
     - "Customer page integration with backend API"
   stuck_tasks: []
   test_all: false
