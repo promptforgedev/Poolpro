@@ -1329,7 +1329,7 @@ class PoolProAPITester:
         print(f"📊 Test Results: {passed}/{total} tests passed")
         
         if passed == total:
-            print("🎉 All tests passed! Phase 2 Backend APIs are working correctly.")
+            print("🎉 All tests passed! Phase 3 Backend APIs are working correctly.")
             return True
         else:
             print(f"⚠️  {total - passed} tests failed. Check the issues above.")
