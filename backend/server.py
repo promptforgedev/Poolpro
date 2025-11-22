@@ -76,6 +76,9 @@ invoices.init_db(db)
 technicians.init_db(db)
 routes.init_db(db)
 alerts.init_db(db)
+reports.init_db(db)
+auth.init_db(db)
+portal.init_db(db)
 
 # Include additional routers in api_router
 api_router.include_router(customers.router)
