@@ -27,7 +27,7 @@ async def get_all_invoices(status: Optional[str] = None):
 @router.get("/{invoice_id}", response_model=Invoice)
 async def get_invoice(invoice_id: str):
     """Get a specific invoice by ID"""
-    invoice = db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
     return invoice
