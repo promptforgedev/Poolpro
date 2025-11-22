@@ -83,14 +83,14 @@ async def approve_quote(quote_id: str):
 @router.post("/{quote_id}/decline")
 async def decline_quote(quote_id: str):
     """Decline a quote"""
-    quote = db.quotes.find_one({"id": quote_id}, {"_id": 0})
+    quote = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
     if not quote:
         raise HTTPException(status_code=404, detail="Quote not found")
     
-    db.quotes.update_one(
+    await db.quotes.update_one(
         {"id": quote_id}, 
         {"$set": {"status": "declined", "updated_at": datetime.now(timezone.utc)}}
     )
     
-    updated_quote = db.quotes.find_one({"id": quote_id}, {"_id": 0})
+    updated_quote = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
     return {"message": "Quote declined", "quote": updated_quote}
