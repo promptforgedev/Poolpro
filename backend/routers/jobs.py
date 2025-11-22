@@ -74,16 +74,16 @@ async def delete_job(job_id: str):
 @router.post("/{job_id}/start")
 async def start_job(job_id: str):
     """Mark a job as in-progress"""
-    job = db.jobs.find_one({"id": job_id}, {"_id": 0})
+    job = await db.jobs.find_one({"id": job_id}, {"_id": 0})
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    db.jobs.update_one(
+    await db.jobs.update_one(
         {"id": job_id}, 
         {"$set": {"status": "in-progress", "updated_at": datetime.now(timezone.utc)}}
     )
     
-    updated_job = db.jobs.find_one({"id": job_id}, {"_id": 0})
+    updated_job = await db.jobs.find_one({"id": job_id}, {"_id": 0})
     return {"message": "Job started", "job": updated_job}
 
 
