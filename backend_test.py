@@ -388,7 +388,7 @@ class PoolProAPITester:
                     "pools": []
                 }
                 
-                response = self.session.post(f"{self.base_url}/customers", json=test_customer)
+                response = self.session.post(f"{self.base_url}/customers/", json=test_customer)
                 
                 if response.status_code == 200:
                     customer = response.json()
