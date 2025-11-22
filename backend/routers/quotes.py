@@ -35,7 +35,7 @@ async def create_quote(quote: QuoteCreate):
     """Create a new quote"""
     quote_dict = quote.model_dump()
     new_quote = Quote(**quote_dict)
-    db.quotes.insert_one(new_quote.model_dump())
+    await db.quotes.insert_one(new_quote.model_dump())
     return new_quote
 
 
