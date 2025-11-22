@@ -272,15 +272,18 @@ backend:
 
   - task: "Technician and Route database models"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/models.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added Technician, TechnicianCreate, TechnicianUpdate models with id, name, email, phone, color, status, assigned_days fields. Added Route, RouteCreate, RouteUpdate, RouteJobReorder models with id, name, technician_id, technician_name, day, jobs array, total_stops, estimated_duration, status fields. All models include proper validation and auto-generated IDs with prefixes (tech-, route-)."
+      - working: true
+        agent: "testing"
+        comment: "Database models working correctly. Technician model includes all required fields (id, name, email, phone, color, status, assigned_days) with proper validation. Color field accepts hex codes, status validates 'active'/'inactive' values, assigned_days stores array of weekdays. Route model has correct structure with technician_id, technician_name, day, jobs array, total_stops, estimated_duration fields. RouteJobReorder model supports drag-drop reordering with jobs array. Auto-generated IDs with proper prefixes (tech-, route-) working correctly. All field validations and model relationships functioning as expected."
 
   - task: "Route and technician data seeding"
     implemented: true
