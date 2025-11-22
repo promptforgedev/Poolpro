@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from models import Customer, CustomerCreate, CustomerUpdate, Pool, PoolCreate, ChemReading, ChemReadingCreate
 
-router = APIRouter(prefix="/api/customers", tags=["customers"])
+router = APIRouter(prefix="/customers", tags=["customers"])
 
 # MongoDB will be accessed from server.py
 db = None
