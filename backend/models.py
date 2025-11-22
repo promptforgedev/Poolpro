@@ -87,3 +87,152 @@ class ChemReadingCreate(BaseModel):
     ta: int
     ch: int
     cya: int
+
+
+# Quote Models
+class QuoteItem(BaseModel):
+    description: str
+    quantity: int = 1
+    unit_price: float
+    total: float
+
+
+class Quote(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: f"quote-{str(uuid.uuid4())[:8]}")
+    customer_id: str
+    customer_name: str
+    status: Literal["pending", "approved", "declined", "expired"] = "pending"
+    items: List[QuoteItem] = []
+    subtotal: float = 0.0
+    tax: float = 0.0
+    total: float = 0.0
+    notes: Optional[str] = None
+    valid_until: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class QuoteCreate(BaseModel):
+    customer_id: str
+    customer_name: str
+    items: List[QuoteItem]
+    subtotal: float
+    tax: float = 0.0
+    total: float
+    notes: Optional[str] = None
+    valid_until: str
+
+
+class QuoteUpdate(BaseModel):
+    status: Optional[Literal["pending", "approved", "declined", "expired"]] = None
+    items: Optional[List[QuoteItem]] = None
+    subtotal: Optional[float] = None
+    tax: Optional[float] = None
+    total: Optional[float] = None
+    notes: Optional[str] = None
+    valid_until: Optional[str] = None
+
+
+# Job Models
+class Job(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: f"job-{str(uuid.uuid4())[:8]}")
+    customer_id: str
+    customer_name: str
+    customer_address: str
+    quote_id: Optional[str] = None
+    status: Literal["scheduled", "in-progress", "completed", "cancelled"] = "scheduled"
+    service_type: str  # Routine Service, Repair, One-time Service
+    scheduled_date: str
+    scheduled_time: str
+    technician: str
+    pools: List[str] = []  # Pool IDs to service
+    notes: Optional[str] = None
+    completion_notes: Optional[str] = None
+    completed_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class JobCreate(BaseModel):
+    customer_id: str
+    customer_name: str
+    customer_address: str
+    quote_id: Optional[str] = None
+    service_type: str
+    scheduled_date: str
+    scheduled_time: str
+    technician: str
+    pools: List[str] = []
+    notes: Optional[str] = None
+
+
+class JobUpdate(BaseModel):
+    status: Optional[Literal["scheduled", "in-progress", "completed", "cancelled"]] = None
+    scheduled_date: Optional[str] = None
+    scheduled_time: Optional[str] = None
+    technician: Optional[str] = None
+    notes: Optional[str] = None
+    completion_notes: Optional[str] = None
+
+
+# Invoice Models
+class InvoiceLineItem(BaseModel):
+    description: str
+    quantity: int = 1
+    unit_price: float
+    total: float
+
+
+class Invoice(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: f"inv-{str(uuid.uuid4())[:8]}")
+    customer_id: str
+    customer_name: str
+    job_id: Optional[str] = None
+    quote_id: Optional[str] = None
+    invoice_number: str
+    status: Literal["draft", "sent", "paid", "overdue", "cancelled"] = "draft"
+    line_items: List[InvoiceLineItem] = []
+    subtotal: float = 0.0
+    tax: float = 0.0
+    total: float = 0.0
+    paid_amount: float = 0.0
+    balance_due: float = 0.0
+    issue_date: str
+    due_date: str
+    paid_date: Optional[str] = None
+    notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class InvoiceCreate(BaseModel):
+    customer_id: str
+    customer_name: str
+    job_id: Optional[str] = None
+    quote_id: Optional[str] = None
+    invoice_number: str
+    line_items: List[InvoiceLineItem]
+    subtotal: float
+    tax: float = 0.0
+    total: float
+    issue_date: str
+    due_date: str
+    notes: Optional[str] = None
+
+
+class InvoiceUpdate(BaseModel):
+    status: Optional[Literal["draft", "sent", "paid", "overdue", "cancelled"]] = None
+    line_items: Optional[List[InvoiceLineItem]] = None
+    subtotal: Optional[float] = None
+    tax: Optional[float] = None
+    total: Optional[float] = None
+    paid_amount: Optional[float] = None
+    balance_due: Optional[float] = None
+    paid_date: Optional[str] = None
+    notes: Optional[str] = None
