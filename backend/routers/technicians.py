@@ -69,7 +69,7 @@ async def create_technician(technician_data: TechnicianCreate):
 async def update_technician(technician_id: str, technician_data: TechnicianUpdate):
     """Update a technician"""
     # Check if technician exists
-    existing = await technicians_collection.find_one({"id": technician_id})
+    existing = await db.technicians.find_one({"id": technician_id}, {"_id": 0})
     if not existing:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -78,16 +78,23 @@ async def update_technician(technician_id: str, technician_data: TechnicianUpdat
     
     # Prepare update data
     update_data = {k: v for k, v in technician_data.model_dump().items() if v is not None}
-    update_data["updated_at"] = datetime.now(timezone.utc)
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
     
     # Update in database
-    await technicians_collection.update_one(
+    await db.technicians.update_one(
         {"id": technician_id},
         {"$set": update_data}
     )
     
     # Fetch and return updated technician
-    updated = await technicians_collection.find_one({"id": technician_id})
+    updated = await db.technicians.find_one({"id": technician_id}, {"_id": 0})
+    
+    # Convert ISO string timestamps
+    if isinstance(updated.get('created_at'), str):
+        updated['created_at'] = datetime.fromisoformat(updated['created_at'])
+    if isinstance(updated.get('updated_at'), str):
+        updated['updated_at'] = datetime.fromisoformat(updated['updated_at'])
+    
     return Technician(**updated)
 
 
