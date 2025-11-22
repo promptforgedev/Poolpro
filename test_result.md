@@ -257,15 +257,18 @@ backend:
 
   - task: "Route management API endpoints"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routers/routes.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created routes router with 11 endpoints: GET all (with day filter), GET by ID, GET by day, GET by technician, POST create, PUT update, DELETE, POST add-job, DELETE remove-job, PUT reorder. Supports full route management including job assignment and drag-drop reordering. Routes track technician_id, day, jobs list, total_stops, and estimated_duration."
+      - working: true
+        agent: "testing"
+        comment: "All 11 route API endpoints tested successfully. GET /api/routes/ returns 12 seeded routes with correct structure including id, name, technician_id, technician_name, day, jobs, total_stops fields. GET /api/routes/?day=Monday filters routes by day (2 Monday routes). GET /api/routes/by-day/Monday returns routes for specific day. GET /api/routes/by-technician/tech-001 returns routes for specific technician (3 routes). GET /api/routes/{id} retrieves specific route. POST /api/routes/ creates new route with auto-generated route-{uuid} ID and automatic total_stops calculation. PUT /api/routes/{id} updates route fields and recalculates total_stops. POST /api/routes/{id}/add-job adds job to route and updates total_stops. DELETE /api/routes/{id}/remove-job/{job_id} removes job from route. PUT /api/routes/{id}/reorder supports drag-drop job reordering. DELETE /api/routes/{id} removes route. All route management and job assignment operations working correctly."
 
   - task: "Technician and Route database models"
     implemented: true
