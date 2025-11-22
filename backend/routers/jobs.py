@@ -119,5 +119,5 @@ async def get_jobs_by_date(date: str):
 @router.get("/by-technician/{technician}")
 async def get_jobs_by_technician(technician: str):
     """Get all jobs assigned to a specific technician"""
-    jobs = list(db.jobs.find({"technician": technician}, {"_id": 0}))
+    jobs = await db.jobs.find({"technician": technician}, {"_id": 0}).to_list(1000)
     return jobs
