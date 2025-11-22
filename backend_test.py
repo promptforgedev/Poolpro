@@ -1627,6 +1627,623 @@ class PoolProAPITester:
         
         return False
     
+    # ===== REPORTS API TESTS =====
+    
+    def test_get_revenue_report(self):
+        """Test GET /api/reports/revenue - revenue breakdown"""
+        try:
+            response = self.session.get(f"{self.base_url}/reports/revenue")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify structure
+                if "summary" in data and "breakdown" in data:
+                    summary = data["summary"]
+                    required_fields = ["total_revenue", "paid_revenue", "outstanding_revenue", "total_invoices"]
+                    missing_fields = [field for field in required_fields if field not in summary]
+                    
+                    if not missing_fields:
+                        # Verify breakdown is a list
+                        if isinstance(data["breakdown"], list):
+                            self.log_test("GET Revenue Report", True, f"Retrieved revenue report with {summary['total_invoices']} invoices, total revenue: ${summary['total_revenue']}")
+                            return True
+                        else:
+                            self.log_test("GET Revenue Report", False, "Breakdown should be a list")
+                    else:
+                        self.log_test("GET Revenue Report", False, f"Missing summary fields: {missing_fields}")
+                else:
+                    self.log_test("GET Revenue Report", False, "Missing summary or breakdown in response")
+            else:
+                self.log_test("GET Revenue Report", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Revenue Report", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_jobs_performance(self):
+        """Test GET /api/reports/jobs-performance - job completion statistics"""
+        try:
+            response = self.session.get(f"{self.base_url}/reports/jobs-performance")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify structure
+                if "summary" in data and "by_service_type" in data:
+                    summary = data["summary"]
+                    required_fields = ["total_jobs", "completed_jobs", "in_progress_jobs", "scheduled_jobs", "completion_rate"]
+                    missing_fields = [field for field in required_fields if field not in summary]
+                    
+                    if not missing_fields:
+                        # Verify by_service_type is a list
+                        if isinstance(data["by_service_type"], list):
+                            self.log_test("GET Jobs Performance", True, f"Retrieved job performance: {summary['total_jobs']} total jobs, {summary['completion_rate']}% completion rate")
+                            return True
+                        else:
+                            self.log_test("GET Jobs Performance", False, "by_service_type should be a list")
+                    else:
+                        self.log_test("GET Jobs Performance", False, f"Missing summary fields: {missing_fields}")
+                else:
+                    self.log_test("GET Jobs Performance", False, "Missing summary or by_service_type in response")
+            else:
+                self.log_test("GET Jobs Performance", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Jobs Performance", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_customer_stats(self):
+        """Test GET /api/reports/customer-stats - customer statistics"""
+        try:
+            response = self.session.get(f"{self.base_url}/reports/customer-stats")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify structure
+                required_fields = ["total_customers", "active_customers", "paused_customers", "inactive_customers", 
+                                 "total_pools", "avg_pools_per_customer", "autopay_customers", "autopay_percentage"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    self.log_test("GET Customer Stats", True, f"Retrieved customer stats: {data['total_customers']} customers, {data['total_pools']} pools, {data['autopay_percentage']}% autopay")
+                    return True
+                else:
+                    self.log_test("GET Customer Stats", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_test("GET Customer Stats", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Customer Stats", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_technician_performance(self):
+        """Test GET /api/reports/technician-performance - technician performance metrics"""
+        try:
+            response = self.session.get(f"{self.base_url}/reports/technician-performance")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify structure
+                if "technicians" in data:
+                    technicians = data["technicians"]
+                    if isinstance(technicians, list) and len(technicians) > 0:
+                        # Check first technician structure
+                        tech = technicians[0]
+                        required_fields = ["technician_id", "technician_name", "total_jobs", "completed_jobs", 
+                                         "in_progress_jobs", "scheduled_jobs", "completion_rate"]
+                        missing_fields = [field for field in required_fields if field not in tech]
+                        
+                        if not missing_fields:
+                            self.log_test("GET Technician Performance", True, f"Retrieved performance for {len(technicians)} technicians")
+                            return True
+                        else:
+                            self.log_test("GET Technician Performance", False, f"Missing technician fields: {missing_fields}")
+                    else:
+                        self.log_test("GET Technician Performance", True, "Retrieved technician performance (no technicians found)")
+                        return True
+                else:
+                    self.log_test("GET Technician Performance", False, "Missing technicians field in response")
+            else:
+                self.log_test("GET Technician Performance", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Technician Performance", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_financial_summary(self):
+        """Test GET /api/reports/financial-summary - overall financial summary"""
+        try:
+            response = self.session.get(f"{self.base_url}/reports/financial-summary")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify structure
+                if "invoices" in data and "quotes" in data:
+                    invoices = data["invoices"]
+                    quotes = data["quotes"]
+                    
+                    invoice_fields = ["total_invoiced", "total_paid", "total_outstanding", "overdue_amount", 
+                                    "paid_count", "sent_count", "draft_count", "overdue_count"]
+                    quote_fields = ["total_quotes", "pending_quotes", "approved_quotes", "declined_quotes", "conversion_rate"]
+                    
+                    missing_invoice_fields = [field for field in invoice_fields if field not in invoices]
+                    missing_quote_fields = [field for field in quote_fields if field not in quotes]
+                    
+                    if not missing_invoice_fields and not missing_quote_fields:
+                        self.log_test("GET Financial Summary", True, f"Retrieved financial summary: ${invoices['total_invoiced']} invoiced, {quotes['conversion_rate']}% quote conversion")
+                        return True
+                    else:
+                        self.log_test("GET Financial Summary", False, f"Missing fields - invoices: {missing_invoice_fields}, quotes: {missing_quote_fields}")
+                else:
+                    self.log_test("GET Financial Summary", False, "Missing invoices or quotes in response")
+            else:
+                self.log_test("GET Financial Summary", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Financial Summary", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_dashboard_stats(self):
+        """Test GET /api/reports/dashboard-stats - key dashboard metrics"""
+        try:
+            response = self.session.get(f"{self.base_url}/reports/dashboard-stats")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify structure
+                if "customers" in data and "jobs" in data and "alerts" in data and "revenue" in data:
+                    customers = data["customers"]
+                    jobs = data["jobs"]
+                    alerts = data["alerts"]
+                    revenue = data["revenue"]
+                    
+                    # Check required fields in each section
+                    if ("total" in customers and "active" in customers and
+                        "total" in jobs and "completed" in jobs and
+                        "unresolved" in alerts and
+                        "total" in revenue and "paid" in revenue and "outstanding" in revenue):
+                        
+                        self.log_test("GET Dashboard Stats", True, f"Retrieved dashboard stats: {customers['total']} customers, {jobs['total']} jobs, {alerts['unresolved']} alerts, ${revenue['total']} revenue")
+                        return True
+                    else:
+                        self.log_test("GET Dashboard Stats", False, "Missing required fields in dashboard stats sections")
+                else:
+                    self.log_test("GET Dashboard Stats", False, "Missing required sections in dashboard stats")
+            else:
+                self.log_test("GET Dashboard Stats", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Dashboard Stats", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    # ===== CUSTOMER AUTH API TESTS =====
+    
+    def test_customer_login(self):
+        """Test POST /api/auth/login - login with test account"""
+        try:
+            login_data = {
+                "email": "john.anderson@email.com",
+                "password": "password123"
+            }
+            
+            response = self.session.post(f"{self.base_url}/auth/login", json=login_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify token structure
+                required_fields = ["access_token", "token_type", "customer_id", "customer_name"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    # Store token for subsequent tests
+                    self.jwt_token = data["access_token"]
+                    self.customer_id = data["customer_id"]
+                    self.customer_name = data["customer_name"]
+                    
+                    if data["token_type"] == "bearer" and data["customer_id"] == "cust-1":
+                        self.log_test("POST Customer Login", True, f"Successfully logged in as {data['customer_name']} (ID: {data['customer_id']})")
+                        return True
+                    else:
+                        self.log_test("POST Customer Login", False, f"Unexpected token data: {data}")
+                else:
+                    self.log_test("POST Customer Login", False, f"Missing token fields: {missing_fields}")
+            else:
+                self.log_test("POST Customer Login", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("POST Customer Login", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_current_customer(self):
+        """Test GET /api/auth/me - get current authenticated customer info"""
+        try:
+            if not self.jwt_token:
+                self.log_test("GET Current Customer", False, "No JWT token available - login test must run first")
+                return False
+            
+            headers = {"Authorization": f"Bearer {self.jwt_token}"}
+            response = self.session.get(f"{self.base_url}/auth/me", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify customer info structure
+                required_fields = ["id", "name", "email", "phone", "address", "status"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    if data["id"] == self.customer_id and data["name"] == self.customer_name:
+                        self.log_test("GET Current Customer", True, f"Retrieved customer info for {data['name']} ({data['id']})")
+                        return True
+                    else:
+                        self.log_test("GET Current Customer", False, f"Customer info mismatch: expected {self.customer_id}, got {data.get('id')}")
+                else:
+                    self.log_test("GET Current Customer", False, f"Missing customer fields: {missing_fields}")
+            else:
+                self.log_test("GET Current Customer", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Current Customer", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_customer_register(self):
+        """Test POST /api/auth/register - register new account for existing customer"""
+        try:
+            register_data = {
+                "customer_id": "cust-2",
+                "email": "sarah.mitchell.new@email.com",
+                "password": "newpassword123"
+            }
+            
+            response = self.session.post(f"{self.base_url}/auth/register", json=register_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify token structure
+                required_fields = ["access_token", "token_type", "customer_id", "customer_name"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    if data["token_type"] == "bearer" and data["customer_id"] == "cust-2":
+                        self.log_test("POST Customer Register", True, f"Successfully registered new account for {data['customer_name']} (ID: {data['customer_id']})")
+                        return True
+                    else:
+                        self.log_test("POST Customer Register", False, f"Unexpected registration data: {data}")
+                else:
+                    self.log_test("POST Customer Register", False, f"Missing token fields: {missing_fields}")
+            else:
+                self.log_test("POST Customer Register", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("POST Customer Register", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    # ===== CUSTOMER PORTAL API TESTS =====
+    
+    def test_get_customer_pools(self):
+        """Test GET /api/portal/pools - get customer's pools"""
+        try:
+            if not self.jwt_token:
+                self.log_test("GET Customer Pools", False, "No JWT token available - login test must run first")
+                return False
+            
+            headers = {"Authorization": f"Bearer {self.jwt_token}"}
+            response = self.session.get(f"{self.base_url}/portal/pools", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify structure
+                required_fields = ["customer_id", "customer_name", "pools"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    if data["customer_id"] == self.customer_id:
+                        pools_count = len(data["pools"])
+                        self.log_test("GET Customer Pools", True, f"Retrieved {pools_count} pools for customer {data['customer_name']}")
+                        return True
+                    else:
+                        self.log_test("GET Customer Pools", False, f"Customer ID mismatch: expected {self.customer_id}, got {data.get('customer_id')}")
+                else:
+                    self.log_test("GET Customer Pools", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_test("GET Customer Pools", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Customer Pools", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_customer_invoices(self):
+        """Test GET /api/portal/invoices - get customer's invoices"""
+        try:
+            if not self.jwt_token:
+                self.log_test("GET Customer Invoices", False, "No JWT token available - login test must run first")
+                return False
+            
+            headers = {"Authorization": f"Bearer {self.jwt_token}"}
+            response = self.session.get(f"{self.base_url}/portal/invoices", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify structure
+                required_fields = ["customer_id", "customer_name", "invoices", "summary"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    summary = data["summary"]
+                    summary_fields = ["total_invoiced", "total_paid", "total_outstanding", "invoice_count"]
+                    missing_summary_fields = [field for field in summary_fields if field not in summary]
+                    
+                    if not missing_summary_fields:
+                        if data["customer_id"] == self.customer_id:
+                            self.log_test("GET Customer Invoices", True, f"Retrieved {summary['invoice_count']} invoices for customer, total: ${summary['total_invoiced']}")
+                            return True
+                        else:
+                            self.log_test("GET Customer Invoices", False, f"Customer ID mismatch: expected {self.customer_id}, got {data.get('customer_id')}")
+                    else:
+                        self.log_test("GET Customer Invoices", False, f"Missing summary fields: {missing_summary_fields}")
+                else:
+                    self.log_test("GET Customer Invoices", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_test("GET Customer Invoices", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Customer Invoices", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_specific_invoice(self):
+        """Test GET /api/portal/invoices/{invoice_id} - get specific invoice"""
+        try:
+            if not self.jwt_token:
+                self.log_test("GET Specific Invoice", False, "No JWT token available - login test must run first")
+                return False
+            
+            # First get customer invoices to find a valid invoice ID
+            headers = {"Authorization": f"Bearer {self.jwt_token}"}
+            invoices_response = self.session.get(f"{self.base_url}/portal/invoices", headers=headers)
+            
+            if invoices_response.status_code == 200:
+                invoices_data = invoices_response.json()
+                invoices = invoices_data.get("invoices", [])
+                
+                if invoices:
+                    invoice_id = invoices[0]["id"]
+                    
+                    response = self.session.get(f"{self.base_url}/portal/invoices/{invoice_id}", headers=headers)
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        
+                        # Verify invoice structure
+                        required_fields = ["id", "customer_id", "customer_name", "total", "status"]
+                        missing_fields = [field for field in required_fields if field not in data]
+                        
+                        if not missing_fields:
+                            if data["id"] == invoice_id and data["customer_id"] == self.customer_id:
+                                self.log_test("GET Specific Invoice", True, f"Retrieved invoice {invoice_id} with total ${data['total']}")
+                                return True
+                            else:
+                                self.log_test("GET Specific Invoice", False, f"Invoice data mismatch")
+                        else:
+                            self.log_test("GET Specific Invoice", False, f"Missing invoice fields: {missing_fields}")
+                    else:
+                        self.log_test("GET Specific Invoice", False, f"HTTP {response.status_code}: {response.text}")
+                else:
+                    self.log_test("GET Specific Invoice", True, "No invoices found for customer (acceptable)")
+                    return True
+            else:
+                self.log_test("GET Specific Invoice", False, "Could not retrieve customer invoices for testing")
+                
+        except Exception as e:
+            self.log_test("GET Specific Invoice", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_customer_jobs(self):
+        """Test GET /api/portal/jobs - get customer's jobs"""
+        try:
+            if not self.jwt_token:
+                self.log_test("GET Customer Jobs", False, "No JWT token available - login test must run first")
+                return False
+            
+            headers = {"Authorization": f"Bearer {self.jwt_token}"}
+            response = self.session.get(f"{self.base_url}/portal/jobs", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify structure
+                required_fields = ["customer_id", "customer_name", "jobs", "summary"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    summary = data["summary"]
+                    summary_fields = ["total_jobs", "scheduled", "in_progress", "completed"]
+                    missing_summary_fields = [field for field in summary_fields if field not in summary]
+                    
+                    if not missing_summary_fields:
+                        if data["customer_id"] == self.customer_id:
+                            self.log_test("GET Customer Jobs", True, f"Retrieved {summary['total_jobs']} jobs for customer ({summary['completed']} completed)")
+                            return True
+                        else:
+                            self.log_test("GET Customer Jobs", False, f"Customer ID mismatch: expected {self.customer_id}, got {data.get('customer_id')}")
+                    else:
+                        self.log_test("GET Customer Jobs", False, f"Missing summary fields: {missing_summary_fields}")
+                else:
+                    self.log_test("GET Customer Jobs", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_test("GET Customer Jobs", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Customer Jobs", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_customer_quotes(self):
+        """Test GET /api/portal/quotes - get customer's quotes"""
+        try:
+            if not self.jwt_token:
+                self.log_test("GET Customer Quotes", False, "No JWT token available - login test must run first")
+                return False
+            
+            headers = {"Authorization": f"Bearer {self.jwt_token}"}
+            response = self.session.get(f"{self.base_url}/portal/quotes", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify structure
+                required_fields = ["customer_id", "customer_name", "quotes", "summary"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    summary = data["summary"]
+                    summary_fields = ["total_quotes", "pending", "approved", "declined"]
+                    missing_summary_fields = [field for field in summary_fields if field not in summary]
+                    
+                    if not missing_summary_fields:
+                        if data["customer_id"] == self.customer_id:
+                            self.log_test("GET Customer Quotes", True, f"Retrieved {summary['total_quotes']} quotes for customer ({summary['approved']} approved)")
+                            return True
+                        else:
+                            self.log_test("GET Customer Quotes", False, f"Customer ID mismatch: expected {self.customer_id}, got {data.get('customer_id')}")
+                    else:
+                        self.log_test("GET Customer Quotes", False, f"Missing summary fields: {missing_summary_fields}")
+                else:
+                    self.log_test("GET Customer Quotes", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_test("GET Customer Quotes", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Customer Quotes", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_service_history(self):
+        """Test GET /api/portal/service-history - get chemical readings from all pools"""
+        try:
+            if not self.jwt_token:
+                self.log_test("GET Service History", False, "No JWT token available - login test must run first")
+                return False
+            
+            headers = {"Authorization": f"Bearer {self.jwt_token}"}
+            response = self.session.get(f"{self.base_url}/portal/service-history", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify structure
+                required_fields = ["customer_id", "customer_name", "service_history"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    if data["customer_id"] == self.customer_id:
+                        service_history = data["service_history"]
+                        if isinstance(service_history, list):
+                            # Check if we have readings and verify structure
+                            if service_history:
+                                reading = service_history[0]
+                                reading_fields = ["pool_id", "pool_name", "date", "fc", "ph", "ta", "ch", "cya"]
+                                missing_reading_fields = [field for field in reading_fields if field not in reading]
+                                
+                                if not missing_reading_fields:
+                                    self.log_test("GET Service History", True, f"Retrieved {len(service_history)} chemical readings for customer")
+                                    return True
+                                else:
+                                    self.log_test("GET Service History", False, f"Missing reading fields: {missing_reading_fields}")
+                            else:
+                                self.log_test("GET Service History", True, "Retrieved service history (no readings found - acceptable)")
+                                return True
+                        else:
+                            self.log_test("GET Service History", False, "service_history should be a list")
+                    else:
+                        self.log_test("GET Service History", False, f"Customer ID mismatch: expected {self.customer_id}, got {data.get('customer_id')}")
+                else:
+                    self.log_test("GET Service History", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_test("GET Service History", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Service History", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_customer_alerts(self):
+        """Test GET /api/portal/alerts - get customer's alerts"""
+        try:
+            if not self.jwt_token:
+                self.log_test("GET Customer Alerts", False, "No JWT token available - login test must run first")
+                return False
+            
+            headers = {"Authorization": f"Bearer {self.jwt_token}"}
+            response = self.session.get(f"{self.base_url}/portal/alerts", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify structure
+                required_fields = ["customer_id", "customer_name", "alerts", "summary"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    summary = data["summary"]
+                    summary_fields = ["total_alerts", "unresolved", "resolved"]
+                    missing_summary_fields = [field for field in summary_fields if field not in summary]
+                    
+                    if not missing_summary_fields:
+                        if data["customer_id"] == self.customer_id:
+                            self.log_test("GET Customer Alerts", True, f"Retrieved {summary['total_alerts']} alerts for customer ({summary['unresolved']} unresolved)")
+                            return True
+                        else:
+                            self.log_test("GET Customer Alerts", False, f"Customer ID mismatch: expected {self.customer_id}, got {data.get('customer_id')}")
+                    else:
+                        self.log_test("GET Customer Alerts", False, f"Missing summary fields: {missing_summary_fields}")
+                else:
+                    self.log_test("GET Customer Alerts", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_test("GET Customer Alerts", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Customer Alerts", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_unauthorized_portal_access(self):
+        """Test portal endpoints without JWT token - should return 401"""
+        try:
+            # Test without Authorization header
+            response = self.session.get(f"{self.base_url}/portal/pools")
+            
+            if response.status_code == 401:
+                self.log_test("Unauthorized Portal Access", True, "Correctly returned 401 for unauthorized portal access")
+                return True
+            else:
+                self.log_test("Unauthorized Portal Access", False, f"Expected 401, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Unauthorized Portal Access", False, f"Exception: {str(e)}")
+        
+        return False
+    
     def run_all_tests(self):
         """Run all Phase 4 backend API tests"""
         print(f"🧪 Starting PoolPro Phase 4 Backend API Tests - Alert System")
