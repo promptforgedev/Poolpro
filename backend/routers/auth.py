@@ -111,7 +111,6 @@ async def register_customer(register_data: CustomerRegister):
 @router.post("/login", response_model=Token)
 async def login_customer(login_data: CustomerLogin):
     """Login customer to portal"""
-    db = await init_db()
     
     # Find auth record
     auth = await db.customer_auth.find_one({"email": login_data.email})
