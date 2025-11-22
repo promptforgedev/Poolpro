@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime, timezone
 
 # Import routers
-from routers import customers, quotes, jobs, invoices, technicians, routes
+from routers import customers, quotes, jobs, invoices, technicians, routes, alerts
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
