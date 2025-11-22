@@ -33,12 +33,19 @@ async def get_all_technicians():
 @router.get("/{technician_id}", response_model=Technician)
 async def get_technician(technician_id: str):
     """Get a specific technician by ID"""
-    technician = await technicians_collection.find_one({"id": technician_id})
+    technician = await db.technicians.find_one({"id": technician_id}, {"_id": 0})
     if not technician:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Technician with id {technician_id} not found"
         )
+    
+    # Convert ISO string timestamps
+    if isinstance(technician.get('created_at'), str):
+        technician['created_at'] = datetime.fromisoformat(technician['created_at'])
+    if isinstance(technician.get('updated_at'), str):
+        technician['updated_at'] = datetime.fromisoformat(technician['updated_at'])
+    
     return Technician(**technician)
 
 
