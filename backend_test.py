@@ -69,32 +69,36 @@ class PoolProAPITester:
         
         return False
     
-    def test_get_customer_by_id(self):
-        """Test GET /api/customers/{customer_id} with existing customer"""
+    def test_get_quote_by_id(self):
+        """Test GET /api/quotes/{quote_id} with existing quote"""
         try:
-            # Test with seeded customer "cust-1"
-            response = self.session.get(f"{self.base_url}/customers/cust-1")
+            # Test with seeded quote "quote-001"
+            response = self.session.get(f"{self.base_url}/quotes/quote-001")
             
             if response.status_code == 200:
-                customer = response.json()
-                if customer['id'] == 'cust-1' and customer['name'] == 'John Anderson':
-                    # Verify pools are included
-                    if 'pools' in customer and len(customer['pools']) > 0:
-                        pool = customer['pools'][0]
-                        if 'chem_readings' in pool and len(pool['chem_readings']) > 0:
-                            self.log_test("GET Customer by ID", True, "Retrieved customer with pools and chemical readings")
-                            return True
+                quote = response.json()
+                if quote['id'] == 'quote-001' and quote['status'] == 'pending':
+                    # Verify quote items and calculations
+                    if 'items' in quote and len(quote['items']) > 0:
+                        item = quote['items'][0]
+                        if 'description' in item and 'unit_price' in item and 'total' in item:
+                            # Verify total calculation
+                            if quote['total'] == 1620.00 and quote['subtotal'] == 1500.00:
+                                self.log_test("GET Quote by ID", True, "Retrieved quote with correct items and calculations")
+                                return True
+                            else:
+                                self.log_test("GET Quote by ID", False, f"Incorrect calculations: total={quote['total']}, subtotal={quote['subtotal']}")
                         else:
-                            self.log_test("GET Customer by ID", False, "Customer pools missing chemical readings")
+                            self.log_test("GET Quote by ID", False, "Quote items missing required fields")
                     else:
-                        self.log_test("GET Customer by ID", False, "Customer missing pools data")
+                        self.log_test("GET Quote by ID", False, "Quote missing items data")
                 else:
-                    self.log_test("GET Customer by ID", False, f"Unexpected customer data: {customer.get('name', 'Unknown')}")
+                    self.log_test("GET Quote by ID", False, f"Unexpected quote data: {quote.get('id', 'Unknown')}")
             else:
-                self.log_test("GET Customer by ID", False, f"HTTP {response.status_code}: {response.text}")
+                self.log_test("GET Quote by ID", False, f"HTTP {response.status_code}: {response.text}")
                 
         except Exception as e:
-            self.log_test("GET Customer by ID", False, f"Exception: {str(e)}")
+            self.log_test("GET Quote by ID", False, f"Exception: {str(e)}")
         
         return False
     
