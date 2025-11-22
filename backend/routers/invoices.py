@@ -85,16 +85,16 @@ async def delete_invoice(invoice_id: str):
 @router.post("/{invoice_id}/send")
 async def send_invoice(invoice_id: str):
     """Mark an invoice as sent"""
-    invoice = db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
     
-    db.invoices.update_one(
+    await db.invoices.update_one(
         {"id": invoice_id}, 
         {"$set": {"status": "sent", "updated_at": datetime.now(timezone.utc)}}
     )
     
-    updated_invoice = db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    updated_invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
     return {"message": "Invoice sent", "invoice": updated_invoice}
 
 
