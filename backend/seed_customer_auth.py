@@ -13,8 +13,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 async def seed_customer_auth():
     # Connect to MongoDB
     mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+    db_name = os.environ.get('DB_NAME', 'test_database')
     client = AsyncIOMotorClient(mongo_url)
-    db = client.poolpro
+    db = client[db_name]
     
     # Clear existing auth data
     await db.customer_auth.delete_many({})
