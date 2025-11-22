@@ -54,8 +54,13 @@ async def create_technician(technician_data: TechnicianCreate):
     """Create a new technician"""
     technician = Technician(**technician_data.model_dump())
     
+    # Convert to dict and serialize datetime to ISO string for MongoDB
+    doc = technician.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    
     # Insert into database
-    await technicians_collection.insert_one(technician.model_dump())
+    await db.technicians.insert_one(doc)
     
     return technician
 
