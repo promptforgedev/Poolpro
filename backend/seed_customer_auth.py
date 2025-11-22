@@ -21,7 +21,7 @@ async def seed_customer_auth():
     print("Cleared existing customer auth data")
     
     # Get existing customers
-    customers = await db.customers.find({}, {"_id": 0}).to_list(100)
+    customers = await db.customers.find({}).to_list(100)
     print(f"Found {len(customers)} customers")
     
     # Create auth for each customer
