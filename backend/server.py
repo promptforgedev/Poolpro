@@ -79,6 +79,8 @@ api_router.include_router(customers.router)
 api_router.include_router(quotes.router)
 api_router.include_router(jobs.router)
 api_router.include_router(invoices.router)
+api_router.include_router(technicians.router)
+api_router.include_router(routes.router)
 
 # Include the router in the main app
 app.include_router(api_router)
