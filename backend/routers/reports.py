@@ -132,7 +132,6 @@ async def get_jobs_performance():
 @router.get("/customer-stats")
 async def get_customer_statistics():
     """Get customer statistics"""
-    db = await init_db()
     
     # Get all customers
     customers = await db.customers.find({}).to_list(1000)
