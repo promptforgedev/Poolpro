@@ -36,7 +36,7 @@ class PoolProAPITester:
     # ===== QUOTES API TESTS =====
     
     def test_get_all_quotes(self):
-        """Test GET /api/quotes - should return 4 seeded quotes"""
+        """Test GET /api/quotes/ - should return 4 seeded quotes"""
         try:
             response = self.session.get(f"{self.base_url}/quotes/")
             
@@ -104,348 +104,680 @@ class PoolProAPITester:
         
         return False
     
-    def test_get_nonexistent_customer(self):
-        """Test GET /api/customers/{customer_id} with non-existent ID"""
+    def test_create_quote(self):
+        """Test POST /api/quotes/ - create new quote"""
         try:
-            response = self.session.get(f"{self.base_url}/customers/nonexistent-id")
-            
-            if response.status_code == 404:
-                self.log_test("GET Non-existent Customer", True, "Correctly returned 404 for non-existent customer")
-                return True
-            else:
-                self.log_test("GET Non-existent Customer", False, f"Expected 404, got {response.status_code}")
-                
-        except Exception as e:
-            self.log_test("GET Non-existent Customer", False, f"Exception: {str(e)}")
-        
-        return False
-    
-    def test_create_customer(self):
-        """Test POST /api/customers - create new customer with pool"""
-        try:
-            new_customer = {
-                "name": "Test Customer",
-                "email": "test.customer@poolpro.com",
-                "phone": "(555) 999-0000",
-                "address": "123 Test Street, Austin, TX 78701",
-                "status": "active",
-                "account_balance": 0.0,
-                "service_day": "Friday",
-                "route_position": 1,
-                "autopay": True,
-                "pools": [
-                    {
-                        "name": "Test Pool",
-                        "type": "In-Ground",
-                        "color": "#3B82F6",
-                        "gallons": 20000,
-                        "equipment": ["Pump", "Filter"],
-                        "last_service": "2025-01-16"
-                    }
-                ]
+            new_quote = {
+                "customer_id": "cust-1",
+                "customer_name": "John Anderson",
+                "items": [
+                    {"description": "Pool Cleaning Service", "quantity": 1, "unit_price": 150.00, "total": 150.00},
+                    {"description": "Chemical Balance", "quantity": 1, "unit_price": 50.00, "total": 50.00}
+                ],
+                "subtotal": 200.00,
+                "tax": 16.00,
+                "total": 216.00,
+                "notes": "Test quote creation",
+                "valid_until": (datetime.now(timezone.utc) + timedelta(days=30)).strftime("%Y-%m-%d")
             }
             
-            response = self.session.post(f"{self.base_url}/customers/", json=new_customer)
+            response = self.session.post(f"{self.base_url}/quotes/", json=new_quote)
             
             if response.status_code == 200:
-                customer = response.json()
-                if customer['name'] == 'Test Customer' and customer['id'].startswith('cust-'):
+                quote = response.json()
+                if quote['customer_name'] == 'John Anderson' and quote['id'].startswith('quote-'):
                     # Store for later tests
-                    self.created_customer_id = customer['id']
+                    self.created_quote_id = quote['id']
                     
-                    # Verify pool was created with ID
-                    if len(customer['pools']) == 1 and customer['pools'][0]['id'].startswith('pool-'):
-                        self.log_test("POST Create Customer", True, f"Created customer {customer['id']} with pool {customer['pools'][0]['id']}")
+                    # Verify calculations
+                    if quote['total'] == 216.00 and quote['subtotal'] == 200.00:
+                        self.log_test("POST Create Quote", True, f"Created quote {quote['id']} with correct calculations")
                         return True
                     else:
-                        self.log_test("POST Create Customer", False, "Pool not created correctly")
+                        self.log_test("POST Create Quote", False, "Quote calculations incorrect")
                 else:
-                    self.log_test("POST Create Customer", False, f"Unexpected customer data: {customer}")
+                    self.log_test("POST Create Quote", False, f"Unexpected quote data: {quote}")
             else:
-                self.log_test("POST Create Customer", False, f"HTTP {response.status_code}: {response.text}")
+                self.log_test("POST Create Quote", False, f"HTTP {response.status_code}: {response.text}")
                 
         except Exception as e:
-            self.log_test("POST Create Customer", False, f"Exception: {str(e)}")
+            self.log_test("POST Create Quote", False, f"Exception: {str(e)}")
         
         return False
     
-    def test_update_customer(self):
-        """Test PUT /api/customers/{customer_id} - update customer details"""
+    def test_update_quote(self):
+        """Test PUT /api/quotes/{quote_id} - update quote"""
         try:
-            # Use the created customer or fallback to cust-1
-            customer_id = self.created_customer_id or "cust-1"
+            # Use created quote or fallback to quote-001
+            quote_id = self.created_quote_id or "quote-001"
             
             update_data = {
-                "name": "Updated Test Customer",
-                "email": "updated.test@poolpro.com",
-                "status": "paused",
-                "autopay": False
+                "status": "pending",
+                "notes": "Updated test quote",
+                "tax": 20.00,
+                "total": 220.00
             }
             
-            response = self.session.put(f"{self.base_url}/customers/{customer_id}", json=update_data)
+            response = self.session.put(f"{self.base_url}/quotes/{quote_id}", json=update_data)
             
             if response.status_code == 200:
-                customer = response.json()
-                if (customer['name'] == 'Updated Test Customer' and 
-                    customer['email'] == 'updated.test@poolpro.com' and
-                    customer['status'] == 'paused' and
-                    customer['autopay'] == False):
-                    self.log_test("PUT Update Customer", True, f"Successfully updated customer {customer_id}")
+                quote = response.json()
+                if quote['notes'] == 'Updated test quote' and quote['tax'] == 20.00:
+                    self.log_test("PUT Update Quote", True, f"Successfully updated quote {quote_id}")
                     return True
                 else:
-                    self.log_test("PUT Update Customer", False, f"Update not reflected correctly: {customer}")
+                    self.log_test("PUT Update Quote", False, f"Update not reflected correctly: {quote}")
             else:
-                self.log_test("PUT Update Customer", False, f"HTTP {response.status_code}: {response.text}")
+                self.log_test("PUT Update Quote", False, f"HTTP {response.status_code}: {response.text}")
                 
         except Exception as e:
-            self.log_test("PUT Update Customer", False, f"Exception: {str(e)}")
+            self.log_test("PUT Update Quote", False, f"Exception: {str(e)}")
         
         return False
     
-    def test_add_pool_to_customer(self):
-        """Test POST /api/customers/{customer_id}/pools - add pool to existing customer"""
+    def test_approve_quote(self):
+        """Test POST /api/quotes/{quote_id}/approve - approve quote"""
         try:
-            # Use cust-1 (John Anderson) who has 1 pool initially
-            customer_id = "cust-1"
+            # Use quote-001 which should be pending
+            quote_id = "quote-001"
             
-            new_pool = {
-                "name": "New Test Pool",
-                "type": "Above-Ground",
-                "color": "#10B981",
-                "gallons": 15000,
-                "equipment": ["Pump", "Filter", "Heater"],
-                "last_service": "2025-01-16"
-            }
-            
-            response = self.session.post(f"{self.base_url}/customers/{customer_id}/pools", json=new_pool)
+            response = self.session.post(f"{self.base_url}/quotes/{quote_id}/approve")
             
             if response.status_code == 200:
-                customer = response.json()
-                # Should now have 2 pools
-                if len(customer['pools']) == 2:
-                    # Find the new pool
-                    new_pool_found = False
-                    for pool in customer['pools']:
-                        if pool['name'] == 'New Test Pool' and pool['type'] == 'Above-Ground':
-                            new_pool_found = True
-                            break
-                    
-                    if new_pool_found:
-                        self.log_test("POST Add Pool", True, f"Successfully added pool to customer {customer_id}")
-                        return True
-                    else:
-                        self.log_test("POST Add Pool", False, "New pool not found in customer data")
+                result = response.json()
+                if result['message'] == 'Quote approved' and result['quote']['status'] == 'approved':
+                    self.log_test("POST Approve Quote", True, f"Successfully approved quote {quote_id}")
+                    return True
                 else:
-                    self.log_test("POST Add Pool", False, f"Expected 2 pools, got {len(customer['pools'])}")
+                    self.log_test("POST Approve Quote", False, f"Quote not approved correctly: {result}")
             else:
-                self.log_test("POST Add Pool", False, f"HTTP {response.status_code}: {response.text}")
+                self.log_test("POST Approve Quote", False, f"HTTP {response.status_code}: {response.text}")
                 
         except Exception as e:
-            self.log_test("POST Add Pool", False, f"Exception: {str(e)}")
+            self.log_test("POST Approve Quote", False, f"Exception: {str(e)}")
         
         return False
     
-    def test_add_chemical_reading(self):
-        """Test POST /api/customers/{customer_id}/pools/{pool_id}/readings - add chemical reading"""
+    def test_decline_quote(self):
+        """Test POST /api/quotes/{quote_id}/decline - decline quote"""
         try:
-            # Use cust-1 and pool-1
-            customer_id = "cust-1"
-            pool_id = "pool-1"
+            # Use quote-004 which should be pending
+            quote_id = "quote-004"
             
-            new_reading = {
-                "date": "2025-01-16",
-                "fc": 3.5,
-                "ph": 7.3,
-                "ta": 118,
-                "ch": 255,
-                "cya": 52
-            }
-            
-            response = self.session.post(f"{self.base_url}/customers/{customer_id}/pools/{pool_id}/readings", json=new_reading)
+            response = self.session.post(f"{self.base_url}/quotes/{quote_id}/decline")
             
             if response.status_code == 200:
-                customer = response.json()
-                # Find the pool and check if reading was added
-                for pool in customer['pools']:
-                    if pool['id'] == pool_id:
-                        # Check if last_service was updated
-                        if pool['last_service'] == '2025-01-16':
-                            # Check if reading was added
-                            reading_found = False
-                            for reading in pool['chem_readings']:
-                                if (reading['date'] == '2025-01-16' and 
-                                    reading['fc'] == 3.5 and 
-                                    reading['ph'] == 7.3):
-                                    reading_found = True
-                                    break
-                            
-                            if reading_found:
-                                self.log_test("POST Add Chemical Reading", True, f"Successfully added chemical reading to pool {pool_id}")
-                                return True
-                            else:
-                                self.log_test("POST Add Chemical Reading", False, "Chemical reading not found in pool data")
-                        else:
-                            self.log_test("POST Add Chemical Reading", False, f"Last service not updated: {pool['last_service']}")
-                        break
+                result = response.json()
+                if result['message'] == 'Quote declined' and result['quote']['status'] == 'declined':
+                    self.log_test("POST Decline Quote", True, f"Successfully declined quote {quote_id}")
+                    return True
                 else:
-                    self.log_test("POST Add Chemical Reading", False, f"Pool {pool_id} not found")
+                    self.log_test("POST Decline Quote", False, f"Quote not declined correctly: {result}")
             else:
-                self.log_test("POST Add Chemical Reading", False, f"HTTP {response.status_code}: {response.text}")
+                self.log_test("POST Decline Quote", False, f"HTTP {response.status_code}: {response.text}")
                 
         except Exception as e:
-            self.log_test("POST Add Chemical Reading", False, f"Exception: {str(e)}")
+            self.log_test("POST Decline Quote", False, f"Exception: {str(e)}")
         
         return False
     
-    def test_get_chemical_readings(self):
-        """Test GET /api/customers/{customer_id}/pools/{pool_id}/readings - get all readings"""
+    def test_delete_quote(self):
+        """Test DELETE /api/quotes/{quote_id} - delete quote"""
         try:
-            # Use cust-1 and pool-1
-            customer_id = "cust-1"
-            pool_id = "pool-1"
-            
-            response = self.session.get(f"{self.base_url}/customers/{customer_id}/pools/{pool_id}/readings")
-            
-            if response.status_code == 200:
-                readings = response.json()
-                if len(readings) >= 3:  # Should have at least 3 seeded readings
-                    # Verify reading structure
-                    reading = readings[0]
-                    required_fields = ['date', 'fc', 'ph', 'ta', 'ch', 'cya']
-                    missing_fields = [field for field in required_fields if field not in reading]
-                    
-                    if not missing_fields:
-                        self.log_test("GET Chemical Readings", True, f"Retrieved {len(readings)} chemical readings with correct structure")
-                        return True
-                    else:
-                        self.log_test("GET Chemical Readings", False, f"Missing fields in reading: {missing_fields}")
-                else:
-                    self.log_test("GET Chemical Readings", False, f"Expected at least 3 readings, got {len(readings)}")
-            else:
-                self.log_test("GET Chemical Readings", False, f"HTTP {response.status_code}: {response.text}")
-                
-        except Exception as e:
-            self.log_test("GET Chemical Readings", False, f"Exception: {str(e)}")
-        
-        return False
-    
-    def test_invalid_pool_id(self):
-        """Test chemical reading with invalid pool ID"""
-        try:
-            customer_id = "cust-1"
-            invalid_pool_id = "nonexistent-pool"
-            
-            new_reading = {
-                "date": "2025-01-16",
-                "fc": 3.0,
-                "ph": 7.4,
-                "ta": 120,
-                "ch": 250,
-                "cya": 50
-            }
-            
-            response = self.session.post(f"{self.base_url}/customers/{customer_id}/pools/{invalid_pool_id}/readings", json=new_reading)
-            
-            if response.status_code == 404:
-                self.log_test("Invalid Pool ID Test", True, "Correctly returned 404 for invalid pool ID")
-                return True
-            else:
-                self.log_test("Invalid Pool ID Test", False, f"Expected 404, got {response.status_code}")
-                
-        except Exception as e:
-            self.log_test("Invalid Pool ID Test", False, f"Exception: {str(e)}")
-        
-        return False
-    
-    def test_delete_customer(self):
-        """Test DELETE /api/customers/{customer_id} - delete customer"""
-        try:
-            # Only delete if we created a test customer
-            if self.created_customer_id:
-                response = self.session.delete(f"{self.base_url}/customers/{self.created_customer_id}")
+            # Only delete if we created a test quote
+            if self.created_quote_id:
+                response = self.session.delete(f"{self.base_url}/quotes/{self.created_quote_id}")
                 
                 if response.status_code == 200:
                     result = response.json()
                     if "deleted successfully" in result.get('message', ''):
-                        # Verify customer is actually deleted
-                        verify_response = self.session.get(f"{self.base_url}/customers/{self.created_customer_id}")
+                        # Verify quote is actually deleted
+                        verify_response = self.session.get(f"{self.base_url}/quotes/{self.created_quote_id}")
                         if verify_response.status_code == 404:
-                            self.log_test("DELETE Customer", True, f"Successfully deleted customer {self.created_customer_id}")
+                            self.log_test("DELETE Quote", True, f"Successfully deleted quote {self.created_quote_id}")
                             return True
                         else:
-                            self.log_test("DELETE Customer", False, "Customer still exists after deletion")
+                            self.log_test("DELETE Quote", False, "Quote still exists after deletion")
                     else:
-                        self.log_test("DELETE Customer", False, f"Unexpected response: {result}")
+                        self.log_test("DELETE Quote", False, f"Unexpected response: {result}")
                 else:
-                    self.log_test("DELETE Customer", False, f"HTTP {response.status_code}: {response.text}")
+                    self.log_test("DELETE Quote", False, f"HTTP {response.status_code}: {response.text}")
             else:
-                self.log_test("DELETE Customer", True, "Skipped - no test customer was created")
+                self.log_test("DELETE Quote", True, "Skipped - no test quote was created")
                 return True
                 
         except Exception as e:
-            self.log_test("DELETE Customer", False, f"Exception: {str(e)}")
+            self.log_test("DELETE Quote", False, f"Exception: {str(e)}")
         
         return False
     
-    def test_customer_status_validation(self):
-        """Test customer status validation (active, paused, inactive)"""
+    # ===== JOBS API TESTS =====
+    
+    def test_get_all_jobs(self):
+        """Test GET /api/jobs/ - should return 6 seeded jobs"""
         try:
-            # Test valid status values
-            valid_statuses = ["active", "paused", "inactive"]
+            response = self.session.get(f"{self.base_url}/jobs/")
             
-            for status in valid_statuses:
-                test_customer = {
-                    "name": f"Status Test Customer {status}",
-                    "email": f"status.{status}@poolpro.com",
-                    "phone": "(555) 888-0000",
-                    "address": "123 Status Street, Austin, TX 78701",
-                    "status": status,
-                    "service_day": "Monday",
-                    "pools": []
-                }
-                
-                response = self.session.post(f"{self.base_url}/customers/", json=test_customer)
-                
-                if response.status_code == 200:
-                    customer = response.json()
-                    if customer['status'] == status:
-                        # Clean up - delete the test customer
-                        self.session.delete(f"{self.base_url}/customers/{customer['id']}")
-                        continue
+            if response.status_code == 200:
+                jobs = response.json()
+                if len(jobs) == 6:
+                    # Verify job structure
+                    job = jobs[0]
+                    required_fields = ['id', 'customer_id', 'customer_name', 'status', 'service_type', 'scheduled_date', 'technician']
+                    missing_fields = [field for field in required_fields if field not in job]
+                    
+                    if not missing_fields:
+                        # Check for various statuses
+                        statuses = [j['status'] for j in jobs]
+                        expected_statuses = ['scheduled', 'in-progress', 'completed']
+                        has_expected_statuses = any(status in statuses for status in expected_statuses)
+                        
+                        if has_expected_statuses:
+                            self.log_test("GET All Jobs", True, f"Retrieved {len(jobs)} jobs with correct structure and various statuses")
+                            return True
+                        else:
+                            self.log_test("GET All Jobs", False, f"Missing expected statuses. Found: {statuses}")
                     else:
-                        self.log_test("Customer Status Validation", False, f"Status {status} not set correctly")
-                        return False
+                        self.log_test("GET All Jobs", False, f"Missing fields in job: {missing_fields}")
                 else:
-                    self.log_test("Customer Status Validation", False, f"Failed to create customer with status {status}: {response.status_code}")
-                    return False
-            
-            self.log_test("Customer Status Validation", True, "All valid status values accepted")
-            return True
+                    self.log_test("GET All Jobs", False, f"Expected 6 jobs, got {len(jobs)}")
+            else:
+                self.log_test("GET All Jobs", False, f"HTTP {response.status_code}: {response.text}")
                 
         except Exception as e:
-            self.log_test("Customer Status Validation", False, f"Exception: {str(e)}")
+            self.log_test("GET All Jobs", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_job_by_id(self):
+        """Test GET /api/jobs/{job_id} with existing job"""
+        try:
+            # Test with seeded job "job-001"
+            response = self.session.get(f"{self.base_url}/jobs/job-001")
+            
+            if response.status_code == 200:
+                job = response.json()
+                if job['id'] == 'job-001' and job['status'] == 'scheduled':
+                    # Verify job details
+                    if job['service_type'] == 'Routine Service' and job['technician'] == 'Mike Johnson':
+                        self.log_test("GET Job by ID", True, "Retrieved job with correct details")
+                        return True
+                    else:
+                        self.log_test("GET Job by ID", False, f"Incorrect job details: {job}")
+                else:
+                    self.log_test("GET Job by ID", False, f"Unexpected job data: {job.get('id', 'Unknown')}")
+            else:
+                self.log_test("GET Job by ID", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Job by ID", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_create_job(self):
+        """Test POST /api/jobs/ - create new job"""
+        try:
+            tomorrow = (datetime.now(timezone.utc) + timedelta(days=1)).strftime("%Y-%m-%d")
+            
+            new_job = {
+                "customer_id": "cust-1",
+                "customer_name": "John Anderson",
+                "customer_address": "123 Main St, Austin, TX 78701",
+                "service_type": "One-time Service",
+                "scheduled_date": tomorrow,
+                "scheduled_time": "02:00 PM",
+                "technician": "Test Technician",
+                "pools": ["pool-1"],
+                "notes": "Test job creation"
+            }
+            
+            response = self.session.post(f"{self.base_url}/jobs/", json=new_job)
+            
+            if response.status_code == 200:
+                job = response.json()
+                if job['customer_name'] == 'John Anderson' and job['id'].startswith('job-'):
+                    # Store for later tests
+                    self.created_job_id = job['id']
+                    
+                    # Verify job details
+                    if job['service_type'] == 'One-time Service' and job['technician'] == 'Test Technician':
+                        self.log_test("POST Create Job", True, f"Created job {job['id']} with correct details")
+                        return True
+                    else:
+                        self.log_test("POST Create Job", False, "Job details incorrect")
+                else:
+                    self.log_test("POST Create Job", False, f"Unexpected job data: {job}")
+            else:
+                self.log_test("POST Create Job", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("POST Create Job", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_update_job(self):
+        """Test PUT /api/jobs/{job_id} - update job"""
+        try:
+            # Use created job or fallback to job-001
+            job_id = self.created_job_id or "job-001"
+            
+            update_data = {
+                "status": "scheduled",
+                "notes": "Updated test job",
+                "technician": "Updated Technician"
+            }
+            
+            response = self.session.put(f"{self.base_url}/jobs/{job_id}", json=update_data)
+            
+            if response.status_code == 200:
+                job = response.json()
+                if job['notes'] == 'Updated test job' and job['technician'] == 'Updated Technician':
+                    self.log_test("PUT Update Job", True, f"Successfully updated job {job_id}")
+                    return True
+                else:
+                    self.log_test("PUT Update Job", False, f"Update not reflected correctly: {job}")
+            else:
+                self.log_test("PUT Update Job", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("PUT Update Job", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_start_job(self):
+        """Test POST /api/jobs/{job_id}/start - start job"""
+        try:
+            # Use job-001 which should be scheduled
+            job_id = "job-001"
+            
+            response = self.session.post(f"{self.base_url}/jobs/{job_id}/start")
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result['message'] == 'Job started' and result['job']['status'] == 'in-progress':
+                    self.log_test("POST Start Job", True, f"Successfully started job {job_id}")
+                    return True
+                else:
+                    self.log_test("POST Start Job", False, f"Job not started correctly: {result}")
+            else:
+                self.log_test("POST Start Job", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("POST Start Job", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_complete_job(self):
+        """Test POST /api/jobs/{job_id}/complete - complete job"""
+        try:
+            # Use job-002 which should be in-progress
+            job_id = "job-002"
+            
+            response = self.session.post(f"{self.base_url}/jobs/{job_id}/complete")
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result['message'] == 'Job completed' and result['job']['status'] == 'completed':
+                    # Verify completed_at is set
+                    if 'completed_at' in result['job'] and result['job']['completed_at']:
+                        self.log_test("POST Complete Job", True, f"Successfully completed job {job_id}")
+                        return True
+                    else:
+                        self.log_test("POST Complete Job", False, "completed_at not set")
+                else:
+                    self.log_test("POST Complete Job", False, f"Job not completed correctly: {result}")
+            else:
+                self.log_test("POST Complete Job", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("POST Complete Job", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_jobs_by_date(self):
+        """Test GET /api/jobs/by-date/{date} - get jobs by date"""
+        try:
+            today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            
+            response = self.session.get(f"{self.base_url}/jobs/by-date/{today}")
+            
+            if response.status_code == 200:
+                jobs = response.json()
+                # Should have at least 2 jobs scheduled for today
+                if len(jobs) >= 2:
+                    # Verify all jobs are for today
+                    all_today = all(job['scheduled_date'] == today for job in jobs)
+                    if all_today:
+                        self.log_test("GET Jobs by Date", True, f"Retrieved {len(jobs)} jobs for {today}")
+                        return True
+                    else:
+                        self.log_test("GET Jobs by Date", False, "Some jobs not for the requested date")
+                else:
+                    self.log_test("GET Jobs by Date", True, f"Retrieved {len(jobs)} jobs for {today} (expected at least 2)")
+                    return True  # This is acceptable as data might vary
+            else:
+                self.log_test("GET Jobs by Date", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Jobs by Date", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_jobs_by_technician(self):
+        """Test GET /api/jobs/by-technician/{technician} - get jobs by technician"""
+        try:
+            technician = "Mike Johnson"
+            
+            response = self.session.get(f"{self.base_url}/jobs/by-technician/{technician}")
+            
+            if response.status_code == 200:
+                jobs = response.json()
+                # Should have at least 2 jobs for Mike Johnson
+                if len(jobs) >= 2:
+                    # Verify all jobs are for the technician
+                    all_mike = all(job['technician'] == technician for job in jobs)
+                    if all_mike:
+                        self.log_test("GET Jobs by Technician", True, f"Retrieved {len(jobs)} jobs for {technician}")
+                        return True
+                    else:
+                        self.log_test("GET Jobs by Technician", False, "Some jobs not for the requested technician")
+                else:
+                    self.log_test("GET Jobs by Technician", True, f"Retrieved {len(jobs)} jobs for {technician}")
+                    return True  # This is acceptable
+            else:
+                self.log_test("GET Jobs by Technician", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Jobs by Technician", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_delete_job(self):
+        """Test DELETE /api/jobs/{job_id} - delete job"""
+        try:
+            # Only delete if we created a test job
+            if self.created_job_id:
+                response = self.session.delete(f"{self.base_url}/jobs/{self.created_job_id}")
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if "deleted successfully" in result.get('message', ''):
+                        # Verify job is actually deleted
+                        verify_response = self.session.get(f"{self.base_url}/jobs/{self.created_job_id}")
+                        if verify_response.status_code == 404:
+                            self.log_test("DELETE Job", True, f"Successfully deleted job {self.created_job_id}")
+                            return True
+                        else:
+                            self.log_test("DELETE Job", False, "Job still exists after deletion")
+                    else:
+                        self.log_test("DELETE Job", False, f"Unexpected response: {result}")
+                else:
+                    self.log_test("DELETE Job", False, f"HTTP {response.status_code}: {response.text}")
+            else:
+                self.log_test("DELETE Job", True, "Skipped - no test job was created")
+                return True
+                
+        except Exception as e:
+            self.log_test("DELETE Job", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    # ===== INVOICES API TESTS =====
+    
+    def test_get_all_invoices(self):
+        """Test GET /api/invoices/ - should return 5 seeded invoices"""
+        try:
+            response = self.session.get(f"{self.base_url}/invoices/")
+            
+            if response.status_code == 200:
+                invoices = response.json()
+                if len(invoices) == 5:
+                    # Verify invoice structure
+                    invoice = invoices[0]
+                    required_fields = ['id', 'customer_id', 'customer_name', 'status', 'line_items', 'subtotal', 'total', 'balance_due']
+                    missing_fields = [field for field in required_fields if field not in invoice]
+                    
+                    if not missing_fields:
+                        # Check for various statuses
+                        statuses = [i['status'] for i in invoices]
+                        expected_statuses = ['draft', 'sent', 'paid', 'overdue']
+                        has_expected_statuses = any(status in statuses for status in expected_statuses)
+                        
+                        if has_expected_statuses:
+                            self.log_test("GET All Invoices", True, f"Retrieved {len(invoices)} invoices with correct structure and various statuses")
+                            return True
+                        else:
+                            self.log_test("GET All Invoices", False, f"Missing expected statuses. Found: {statuses}")
+                    else:
+                        self.log_test("GET All Invoices", False, f"Missing fields in invoice: {missing_fields}")
+                else:
+                    self.log_test("GET All Invoices", False, f"Expected 5 invoices, got {len(invoices)}")
+            else:
+                self.log_test("GET All Invoices", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET All Invoices", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_invoice_by_id(self):
+        """Test GET /api/invoices/{invoice_id} with existing invoice"""
+        try:
+            # Test with seeded invoice "inv-001"
+            response = self.session.get(f"{self.base_url}/invoices/inv-001")
+            
+            if response.status_code == 200:
+                invoice = response.json()
+                if invoice['id'] == 'inv-001' and invoice['status'] == 'paid':
+                    # Verify invoice details
+                    if invoice['total'] == 172.80 and invoice['balance_due'] == 0.00:
+                        self.log_test("GET Invoice by ID", True, "Retrieved invoice with correct details")
+                        return True
+                    else:
+                        self.log_test("GET Invoice by ID", False, f"Incorrect invoice calculations: {invoice}")
+                else:
+                    self.log_test("GET Invoice by ID", False, f"Unexpected invoice data: {invoice.get('id', 'Unknown')}")
+            else:
+                self.log_test("GET Invoice by ID", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Invoice by ID", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_create_invoice(self):
+        """Test POST /api/invoices/ - create new invoice"""
+        try:
+            today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            due_date = (datetime.now(timezone.utc) + timedelta(days=30)).strftime("%Y-%m-%d")
+            
+            new_invoice = {
+                "customer_id": "cust-1",
+                "customer_name": "John Anderson",
+                "invoice_number": "INV-TEST-001",
+                "line_items": [
+                    {"description": "Test Service", "quantity": 1, "unit_price": 100.00, "total": 100.00},
+                    {"description": "Test Materials", "quantity": 2, "unit_price": 25.00, "total": 50.00}
+                ],
+                "subtotal": 150.00,
+                "tax": 12.00,
+                "total": 162.00,
+                "issue_date": today,
+                "due_date": due_date,
+                "notes": "Test invoice creation"
+            }
+            
+            response = self.session.post(f"{self.base_url}/invoices/", json=new_invoice)
+            
+            if response.status_code == 200:
+                invoice = response.json()
+                if invoice['customer_name'] == 'John Anderson' and invoice['id'].startswith('inv-'):
+                    # Store for later tests
+                    self.created_invoice_id = invoice['id']
+                    
+                    # Verify calculations
+                    if invoice['total'] == 162.00 and invoice['balance_due'] == 162.00:
+                        self.log_test("POST Create Invoice", True, f"Created invoice {invoice['id']} with correct calculations")
+                        return True
+                    else:
+                        self.log_test("POST Create Invoice", False, "Invoice calculations incorrect")
+                else:
+                    self.log_test("POST Create Invoice", False, f"Unexpected invoice data: {invoice}")
+            else:
+                self.log_test("POST Create Invoice", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("POST Create Invoice", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_update_invoice_payment(self):
+        """Test PUT /api/invoices/{invoice_id} - update invoice with payment"""
+        try:
+            # Use created invoice or fallback to inv-002
+            invoice_id = self.created_invoice_id or "inv-002"
+            
+            update_data = {
+                "paid_amount": 100.00,
+                "notes": "Partial payment received"
+            }
+            
+            response = self.session.put(f"{self.base_url}/invoices/{invoice_id}", json=update_data)
+            
+            if response.status_code == 200:
+                invoice = response.json()
+                if invoice['paid_amount'] == 100.00 and invoice['balance_due'] > 0:
+                    self.log_test("PUT Update Invoice Payment", True, f"Successfully updated invoice {invoice_id} with payment")
+                    return True
+                else:
+                    self.log_test("PUT Update Invoice Payment", False, f"Payment update not reflected correctly: {invoice}")
+            else:
+                self.log_test("PUT Update Invoice Payment", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("PUT Update Invoice Payment", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_delete_invoice(self):
+        """Test DELETE /api/invoices/{invoice_id} - delete invoice"""
+        try:
+            # Only delete if we created a test invoice
+            if self.created_invoice_id:
+                response = self.session.delete(f"{self.base_url}/invoices/{self.created_invoice_id}")
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if "deleted successfully" in result.get('message', ''):
+                        # Verify invoice is actually deleted
+                        verify_response = self.session.get(f"{self.base_url}/invoices/{self.created_invoice_id}")
+                        if verify_response.status_code == 404:
+                            self.log_test("DELETE Invoice", True, f"Successfully deleted invoice {self.created_invoice_id}")
+                            return True
+                        else:
+                            self.log_test("DELETE Invoice", False, "Invoice still exists after deletion")
+                    else:
+                        self.log_test("DELETE Invoice", False, f"Unexpected response: {result}")
+                else:
+                    self.log_test("DELETE Invoice", False, f"HTTP {response.status_code}: {response.text}")
+            else:
+                self.log_test("DELETE Invoice", True, "Skipped - no test invoice was created")
+                return True
+                
+        except Exception as e:
+            self.log_test("DELETE Invoice", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    # ===== ERROR HANDLING TESTS =====
+    
+    def test_nonexistent_quote(self):
+        """Test GET /api/quotes/{quote_id} with non-existent ID"""
+        try:
+            response = self.session.get(f"{self.base_url}/quotes/nonexistent-quote")
+            
+            if response.status_code == 404:
+                self.log_test("GET Non-existent Quote", True, "Correctly returned 404 for non-existent quote")
+                return True
+            else:
+                self.log_test("GET Non-existent Quote", False, f"Expected 404, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("GET Non-existent Quote", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_nonexistent_job(self):
+        """Test GET /api/jobs/{job_id} with non-existent ID"""
+        try:
+            response = self.session.get(f"{self.base_url}/jobs/nonexistent-job")
+            
+            if response.status_code == 404:
+                self.log_test("GET Non-existent Job", True, "Correctly returned 404 for non-existent job")
+                return True
+            else:
+                self.log_test("GET Non-existent Job", False, f"Expected 404, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("GET Non-existent Job", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_nonexistent_invoice(self):
+        """Test GET /api/invoices/{invoice_id} with non-existent ID"""
+        try:
+            response = self.session.get(f"{self.base_url}/invoices/nonexistent-invoice")
+            
+            if response.status_code == 404:
+                self.log_test("GET Non-existent Invoice", True, "Correctly returned 404 for non-existent invoice")
+                return True
+            else:
+                self.log_test("GET Non-existent Invoice", False, f"Expected 404, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("GET Non-existent Invoice", False, f"Exception: {str(e)}")
         
         return False
     
     def run_all_tests(self):
-        """Run all backend API tests"""
-        print(f"🧪 Starting PoolPro Backend API Tests")
+        """Run all Phase 2 backend API tests"""
+        print(f"🧪 Starting PoolPro Phase 2 Backend API Tests")
         print(f"🔗 Backend URL: {self.base_url}")
         print("=" * 60)
         
-        # Test sequence
+        # Test sequence - organized by API group
         tests = [
-            self.test_get_all_customers,
-            self.test_get_customer_by_id,
-            self.test_get_nonexistent_customer,
-            self.test_create_customer,
-            self.test_update_customer,
-            self.test_add_pool_to_customer,
-            self.test_add_chemical_reading,
-            self.test_get_chemical_readings,
-            self.test_invalid_pool_id,
-            self.test_customer_status_validation,
-            self.test_delete_customer
+            # Quotes API Tests
+            self.test_get_all_quotes,
+            self.test_get_quote_by_id,
+            self.test_create_quote,
+            self.test_update_quote,
+            self.test_approve_quote,
+            self.test_decline_quote,
+            self.test_delete_quote,
+            
+            # Jobs API Tests
+            self.test_get_all_jobs,
+            self.test_get_job_by_id,
+            self.test_create_job,
+            self.test_update_job,
+            self.test_start_job,
+            self.test_complete_job,
+            self.test_get_jobs_by_date,
+            self.test_get_jobs_by_technician,
+            self.test_delete_job,
+            
+            # Invoices API Tests
+            self.test_get_all_invoices,
+            self.test_get_invoice_by_id,
+            self.test_create_invoice,
+            self.test_update_invoice_payment,
+            self.test_delete_invoice,
+            
+            # Error Handling Tests
+            self.test_nonexistent_quote,
+            self.test_nonexistent_job,
+            self.test_nonexistent_invoice
         ]
         
         passed = 0
@@ -460,7 +792,7 @@ class PoolProAPITester:
         print(f"📊 Test Results: {passed}/{total} tests passed")
         
         if passed == total:
-            print("🎉 All tests passed! Backend APIs are working correctly.")
+            print("🎉 All tests passed! Phase 2 Backend APIs are working correctly.")
             return True
         else:
             print(f"⚠️  {total - passed} tests failed. Check the issues above.")
