@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Backend API Testing for Pool Management Software (PoolPro)
-Tests all customer CRUD operations, pool management, and chemical readings
+Phase 2: Tests Job Management Workflow (Quotes, Jobs, Invoices)
 """
 
 import requests
