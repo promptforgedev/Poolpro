@@ -67,7 +67,6 @@ async def get_current_customer(token: str = Depends(oauth2_scheme)):
     except JWTError:
         raise credentials_exception
     
-    db = await init_db()
     customer = await db.customers.find_one({"id": token_data.customer_id})
     if customer is None:
         raise credentials_exception
