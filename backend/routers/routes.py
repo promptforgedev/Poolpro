@@ -193,12 +193,18 @@ async def add_job_to_route(route_id: str, job_id: str):
 async def remove_job_from_route(route_id: str, job_id: str):
     """Remove a job from a route"""
     # Check if route exists
-    existing = await routes_collection.find_one({"id": route_id})
+    existing = await db.routes.find_one({"id": route_id}, {"_id": 0})
     if not existing:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Route with id {route_id} not found"
         )
+    
+    # Convert ISO string timestamps
+    if isinstance(existing.get('created_at'), str):
+        existing['created_at'] = datetime.fromisoformat(existing['created_at'])
+    if isinstance(existing.get('updated_at'), str):
+        existing['updated_at'] = datetime.fromisoformat(existing['updated_at'])
     
     route = Route(**existing)
     
@@ -209,9 +215,13 @@ async def remove_job_from_route(route_id: str, job_id: str):
         route.updated_at = datetime.now(timezone.utc)
         
         # Update in database
-        await routes_collection.update_one(
+        await db.routes.update_one(
             {"id": route_id},
-            {"$set": {"jobs": route.jobs, "total_stops": route.total_stops, "updated_at": route.updated_at}}
+            {"$set": {
+                "jobs": route.jobs, 
+                "total_stops": route.total_stops, 
+                "updated_at": route.updated_at.isoformat()
+            }}
         )
     
     return route
