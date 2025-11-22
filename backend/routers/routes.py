@@ -104,7 +104,7 @@ async def create_route(route_data: RouteCreate):
 async def update_route(route_id: str, route_data: RouteUpdate):
     """Update a route"""
     # Check if route exists
-    existing = await routes_collection.find_one({"id": route_id})
+    existing = await db.routes.find_one({"id": route_id}, {"_id": 0})
     if not existing:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -113,20 +113,27 @@ async def update_route(route_id: str, route_data: RouteUpdate):
     
     # Prepare update data
     update_data = {k: v for k, v in route_data.model_dump().items() if v is not None}
-    update_data["updated_at"] = datetime.now(timezone.utc)
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
     
     # Update total_stops if jobs were updated
     if "jobs" in update_data:
         update_data["total_stops"] = len(update_data["jobs"])
     
     # Update in database
-    await routes_collection.update_one(
+    await db.routes.update_one(
         {"id": route_id},
         {"$set": update_data}
     )
     
     # Fetch and return updated route
-    updated = await routes_collection.find_one({"id": route_id})
+    updated = await db.routes.find_one({"id": route_id}, {"_id": 0})
+    
+    # Convert ISO string timestamps
+    if isinstance(updated.get('created_at'), str):
+        updated['created_at'] = datetime.fromisoformat(updated['created_at'])
+    if isinstance(updated.get('updated_at'), str):
+        updated['updated_at'] = datetime.fromisoformat(updated['updated_at'])
+    
     return Route(**updated)
 
 
