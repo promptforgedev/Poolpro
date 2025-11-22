@@ -300,6 +300,42 @@ backend:
         agent: "testing"
         comment: "Database seeding working correctly. Successfully populated database with 4 technicians (tech-001 through tech-004) with unique colors (#3B82F6, #10B981, #F59E0B, #8B5CF6) and different assigned_days patterns. Mike Johnson works Mon/Wed/Fri, Sarah Martinez works Tue/Thu, David Chen works all weekdays, Emily Rodriguez works Wed/Fri. Created 12 routes distributed across Monday-Friday with proper technician assignments and job allocations. All seeded data accessible through API endpoints with correct structure and relationships. Route scheduling data realistic with proper estimated_duration calculations."
 
+  - task: "Alert CRUD API endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routers/alerts.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created alerts router with 8 endpoints: GET all alerts (with filters for resolved, severity, type, customer_id), GET alert by ID, POST create alert, PUT update alert, DELETE alert, POST resolve alert, and GET stats/summary for alert analytics. Supports all alert types: chemical, flow, leak, time, cost. Severity levels: high, medium, low. Alerts track customer_id, customer_name, optional pool_id/pool_name for physical alerts, optional job_id for time/cost alerts. Includes resolved status and resolved_at timestamp. Connected to MongoDB."
+
+  - task: "Alert database models"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added Alert, AlertCreate, AlertUpdate models with id (alert-{uuid}), type (chemical/flow/leak/time/cost), severity (high/medium/low), title, message, customer_id, customer_name, pool_id, pool_name (optional for pool-related alerts), job_id (optional for time/cost alerts), resolved (boolean), resolved_at (optional timestamp), created_at, updated_at fields. All models include proper validation and auto-generated IDs with alert- prefix."
+
+  - task: "Alert data seeding"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/seed_alerts_data.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created seed script for alerts (9 total: 7 unresolved, 2 resolved). Includes realistic alerts: chemical alerts (low chlorine, high pH, low TA), flow alert (reduced flow), leak alert (water level drop), time alert (service time exceeded), cost alert (budget exceeded). Also includes 2 resolved historical alerts (high CYA, filter cleaning). Successfully seeded database with 9 alerts after ensuring customer and job data exists. Script run successfully with all alerts inserted."
+
 frontend:
   - task: "Customer page integration with backend API"
     implemented: true
