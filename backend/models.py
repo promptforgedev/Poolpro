@@ -236,3 +236,77 @@ class InvoiceUpdate(BaseModel):
     balance_due: Optional[float] = None
     paid_date: Optional[str] = None
     notes: Optional[str] = None
+
+
+
+# Technician Models
+class Technician(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: f"tech-{str(uuid.uuid4())[:8]}")
+    name: str
+    email: str
+    phone: str
+    color: str = "#3B82F6"  # Hex color for UI visualization
+    status: Literal["active", "inactive"] = "active"
+    assigned_days: List[str] = []  # Days they work (e.g., ["Monday", "Tuesday"])
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class TechnicianCreate(BaseModel):
+    name: str
+    email: str
+    phone: str
+    color: str = "#3B82F6"
+    status: Literal["active", "inactive"] = "active"
+    assigned_days: List[str] = []
+
+
+class TechnicianUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    color: Optional[str] = None
+    status: Optional[Literal["active", "inactive"]] = None
+    assigned_days: Optional[List[str]] = None
+
+
+# Route Models
+class Route(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: f"route-{str(uuid.uuid4())[:8]}")
+    name: str  # e.g., "Monday Route A"
+    technician_id: str
+    technician_name: str
+    day: str  # Monday, Tuesday, Wednesday, etc.
+    jobs: List[str] = []  # List of job IDs in order
+    total_stops: int = 0
+    estimated_duration: int = 0  # In minutes
+    status: Literal["active", "inactive"] = "active"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class RouteCreate(BaseModel):
+    name: str
+    technician_id: str
+    technician_name: str
+    day: str
+    jobs: List[str] = []
+    estimated_duration: int = 0
+
+
+class RouteUpdate(BaseModel):
+    name: Optional[str] = None
+    technician_id: Optional[str] = None
+    technician_name: Optional[str] = None
+    day: Optional[str] = None
+    jobs: Optional[List[str]] = None
+    estimated_duration: Optional[int] = None
+    status: Optional[Literal["active", "inactive"]] = None
+
+
+class RouteJobReorder(BaseModel):
+    jobs: List[str]  # New order of job IDs
