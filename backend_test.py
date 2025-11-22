@@ -1625,36 +1625,28 @@ class PoolProAPITester:
         return False
     
     def run_all_tests(self):
-        """Run all Phase 3 backend API tests"""
-        print(f"🧪 Starting PoolPro Phase 3 Backend API Tests")
+        """Run all Phase 4 backend API tests"""
+        print(f"🧪 Starting PoolPro Phase 4 Backend API Tests - Alert System")
         print(f"🔗 Backend URL: {self.base_url}")
         print("=" * 60)
         
         # Test sequence - organized by API group
         tests = [
-            # Technicians API Tests
-            self.test_get_all_technicians,
-            self.test_get_technician_by_id,
-            self.test_create_technician,
-            self.test_update_technician,
-            self.test_delete_technician,
-            
-            # Routes API Tests
-            self.test_get_all_routes,
-            self.test_get_routes_filtered_by_day,
-            self.test_get_routes_by_day,
-            self.test_get_routes_by_technician,
-            self.test_get_route_by_id,
-            self.test_create_route,
-            self.test_update_route,
-            self.test_add_job_to_route,
-            self.test_remove_job_from_route,
-            self.test_reorder_route_jobs,
-            self.test_delete_route,
+            # Alerts API Tests
+            self.test_get_all_alerts,
+            self.test_get_alerts_filtered_unresolved,
+            self.test_get_alerts_filtered_resolved,
+            self.test_get_alerts_filtered_by_severity,
+            self.test_get_alerts_filtered_by_type,
+            self.test_get_alert_by_id,
+            self.test_create_alert,
+            self.test_update_alert,
+            self.test_resolve_alert,
+            self.test_get_alert_stats,
+            self.test_delete_alert,
             
             # Error Handling Tests
-            self.test_nonexistent_technician,
-            self.test_nonexistent_route
+            self.test_nonexistent_alert
         ]
         
         passed = 0
