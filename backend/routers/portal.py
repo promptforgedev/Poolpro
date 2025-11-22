@@ -30,7 +30,6 @@ async def get_customer_pools(current_customer: dict = Depends(get_current_custom
 @router.get("/invoices")
 async def get_customer_invoices(current_customer: dict = Depends(get_current_customer)):
     """Get all invoices for authenticated customer"""
-    db = await init_db()
     
     customer_id = current_customer.get("id")
     invoices = await db.invoices.find({"customer_id": customer_id}).to_list(100)
