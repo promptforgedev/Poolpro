@@ -691,6 +691,517 @@ class PoolProAPITester:
         
         return False
     
+    # ===== TECHNICIANS API TESTS =====
+    
+    def test_get_all_technicians(self):
+        """Test GET /api/technicians/ - should return 4 seeded technicians"""
+        try:
+            response = self.session.get(f"{self.base_url}/technicians/")
+            
+            if response.status_code == 200:
+                technicians = response.json()
+                if len(technicians) == 4:
+                    # Verify technician structure
+                    tech = technicians[0]
+                    required_fields = ['id', 'name', 'email', 'phone', 'color', 'status', 'assigned_days']
+                    missing_fields = [field for field in required_fields if field not in tech]
+                    
+                    if not missing_fields:
+                        # Check for expected technician IDs
+                        tech_ids = [t['id'] for t in technicians]
+                        expected_ids = ['tech-001', 'tech-002', 'tech-003', 'tech-004']
+                        has_expected_ids = all(tech_id in tech_ids for tech_id in expected_ids)
+                        
+                        if has_expected_ids:
+                            self.log_test("GET All Technicians", True, f"Retrieved {len(technicians)} technicians with correct structure and IDs")
+                            return True
+                        else:
+                            self.log_test("GET All Technicians", False, f"Missing expected technician IDs. Found: {tech_ids}")
+                    else:
+                        self.log_test("GET All Technicians", False, f"Missing fields in technician: {missing_fields}")
+                else:
+                    self.log_test("GET All Technicians", False, f"Expected 4 technicians, got {len(technicians)}")
+            else:
+                self.log_test("GET All Technicians", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET All Technicians", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_technician_by_id(self):
+        """Test GET /api/technicians/{technician_id} with existing technician"""
+        try:
+            # Test with seeded technician "tech-001"
+            response = self.session.get(f"{self.base_url}/technicians/tech-001")
+            
+            if response.status_code == 200:
+                tech = response.json()
+                if tech['id'] == 'tech-001' and tech['name'] == 'Mike Johnson':
+                    # Verify technician details
+                    if tech['status'] == 'active' and 'Monday' in tech['assigned_days']:
+                        self.log_test("GET Technician by ID", True, "Retrieved technician with correct details")
+                        return True
+                    else:
+                        self.log_test("GET Technician by ID", False, f"Incorrect technician details: {tech}")
+                else:
+                    self.log_test("GET Technician by ID", False, f"Unexpected technician data: {tech.get('id', 'Unknown')}")
+            else:
+                self.log_test("GET Technician by ID", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Technician by ID", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_create_technician(self):
+        """Test POST /api/technicians/ - create new technician"""
+        try:
+            new_tech = {
+                "name": "Test Technician",
+                "email": "test.tech@poolpro.com",
+                "phone": "(555) 999-0000",
+                "color": "#FF5733",
+                "status": "active",
+                "assigned_days": ["Monday", "Tuesday"]
+            }
+            
+            response = self.session.post(f"{self.base_url}/technicians/", json=new_tech)
+            
+            if response.status_code == 201:
+                tech = response.json()
+                if tech['name'] == 'Test Technician' and tech['id'].startswith('tech-'):
+                    # Store for later tests
+                    self.created_technician_id = tech['id']
+                    
+                    # Verify technician details
+                    if tech['color'] == '#FF5733' and tech['status'] == 'active':
+                        self.log_test("POST Create Technician", True, f"Created technician {tech['id']} with correct details")
+                        return True
+                    else:
+                        self.log_test("POST Create Technician", False, "Technician details incorrect")
+                else:
+                    self.log_test("POST Create Technician", False, f"Unexpected technician data: {tech}")
+            else:
+                self.log_test("POST Create Technician", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("POST Create Technician", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_update_technician(self):
+        """Test PUT /api/technicians/{technician_id} - update technician"""
+        try:
+            # Use created technician or fallback to tech-001
+            tech_id = self.created_technician_id or "tech-001"
+            
+            update_data = {
+                "color": "#00FF00",
+                "status": "active",
+                "assigned_days": ["Monday", "Wednesday", "Friday"]
+            }
+            
+            response = self.session.put(f"{self.base_url}/technicians/{tech_id}", json=update_data)
+            
+            if response.status_code == 200:
+                tech = response.json()
+                if tech['color'] == '#00FF00' and len(tech['assigned_days']) == 3:
+                    self.log_test("PUT Update Technician", True, f"Successfully updated technician {tech_id}")
+                    return True
+                else:
+                    self.log_test("PUT Update Technician", False, f"Update not reflected correctly: {tech}")
+            else:
+                self.log_test("PUT Update Technician", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("PUT Update Technician", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_delete_technician(self):
+        """Test DELETE /api/technicians/{technician_id} - delete technician"""
+        try:
+            # Only delete if we created a test technician
+            if self.created_technician_id:
+                response = self.session.delete(f"{self.base_url}/technicians/{self.created_technician_id}")
+                
+                if response.status_code == 204:
+                    # Verify technician is actually deleted
+                    verify_response = self.session.get(f"{self.base_url}/technicians/{self.created_technician_id}")
+                    if verify_response.status_code == 404:
+                        self.log_test("DELETE Technician", True, f"Successfully deleted technician {self.created_technician_id}")
+                        return True
+                    else:
+                        self.log_test("DELETE Technician", False, "Technician still exists after deletion")
+                else:
+                    self.log_test("DELETE Technician", False, f"HTTP {response.status_code}: {response.text}")
+            else:
+                self.log_test("DELETE Technician", True, "Skipped - no test technician was created")
+                return True
+                
+        except Exception as e:
+            self.log_test("DELETE Technician", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    # ===== ROUTES API TESTS =====
+    
+    def test_get_all_routes(self):
+        """Test GET /api/routes/ - should return 12 seeded routes"""
+        try:
+            response = self.session.get(f"{self.base_url}/routes/")
+            
+            if response.status_code == 200:
+                routes = response.json()
+                if len(routes) >= 10:  # Should be around 12 but allow some flexibility
+                    # Verify route structure
+                    route = routes[0]
+                    required_fields = ['id', 'name', 'technician_id', 'technician_name', 'day', 'jobs', 'total_stops']
+                    missing_fields = [field for field in required_fields if field not in route]
+                    
+                    if not missing_fields:
+                        # Check for various days
+                        days = [r['day'] for r in routes]
+                        expected_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+                        has_expected_days = any(day in days for day in expected_days)
+                        
+                        if has_expected_days:
+                            self.log_test("GET All Routes", True, f"Retrieved {len(routes)} routes with correct structure and various days")
+                            return True
+                        else:
+                            self.log_test("GET All Routes", False, f"Missing expected days. Found: {set(days)}")
+                    else:
+                        self.log_test("GET All Routes", False, f"Missing fields in route: {missing_fields}")
+                else:
+                    self.log_test("GET All Routes", False, f"Expected at least 10 routes, got {len(routes)}")
+            else:
+                self.log_test("GET All Routes", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET All Routes", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_routes_filtered_by_day(self):
+        """Test GET /api/routes/?day=Monday - get routes filtered by day"""
+        try:
+            response = self.session.get(f"{self.base_url}/routes/?day=Monday")
+            
+            if response.status_code == 200:
+                routes = response.json()
+                if len(routes) >= 1:
+                    # Verify all routes are for Monday
+                    all_monday = all(route['day'] == 'Monday' for route in routes)
+                    if all_monday:
+                        self.log_test("GET Routes Filtered by Day", True, f"Retrieved {len(routes)} Monday routes")
+                        return True
+                    else:
+                        self.log_test("GET Routes Filtered by Day", False, "Some routes not for Monday")
+                else:
+                    self.log_test("GET Routes Filtered by Day", False, f"Expected at least 1 Monday route, got {len(routes)}")
+            else:
+                self.log_test("GET Routes Filtered by Day", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Routes Filtered by Day", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_routes_by_day(self):
+        """Test GET /api/routes/by-day/Monday - get routes for Monday"""
+        try:
+            response = self.session.get(f"{self.base_url}/routes/by-day/Monday")
+            
+            if response.status_code == 200:
+                routes = response.json()
+                if len(routes) >= 1:
+                    # Verify all routes are for Monday
+                    all_monday = all(route['day'] == 'Monday' for route in routes)
+                    if all_monday:
+                        self.log_test("GET Routes by Day", True, f"Retrieved {len(routes)} Monday routes")
+                        return True
+                    else:
+                        self.log_test("GET Routes by Day", False, "Some routes not for Monday")
+                else:
+                    self.log_test("GET Routes by Day", True, f"Retrieved {len(routes)} Monday routes (acceptable)")
+                    return True  # This is acceptable
+            else:
+                self.log_test("GET Routes by Day", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Routes by Day", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_routes_by_technician(self):
+        """Test GET /api/routes/by-technician/tech-001 - get routes for specific technician"""
+        try:
+            response = self.session.get(f"{self.base_url}/routes/by-technician/tech-001")
+            
+            if response.status_code == 200:
+                routes = response.json()
+                if len(routes) >= 1:
+                    # Verify all routes are for tech-001
+                    all_tech001 = all(route['technician_id'] == 'tech-001' for route in routes)
+                    if all_tech001:
+                        self.log_test("GET Routes by Technician", True, f"Retrieved {len(routes)} routes for tech-001")
+                        return True
+                    else:
+                        self.log_test("GET Routes by Technician", False, "Some routes not for tech-001")
+                else:
+                    self.log_test("GET Routes by Technician", True, f"Retrieved {len(routes)} routes for tech-001 (acceptable)")
+                    return True  # This is acceptable
+            else:
+                self.log_test("GET Routes by Technician", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Routes by Technician", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_route_by_id(self):
+        """Test GET /api/routes/{route_id} with existing route"""
+        try:
+            # First get all routes to find a valid ID
+            all_routes_response = self.session.get(f"{self.base_url}/routes/")
+            if all_routes_response.status_code == 200:
+                routes = all_routes_response.json()
+                if routes:
+                    route_id = routes[0]['id']
+                    
+                    response = self.session.get(f"{self.base_url}/routes/{route_id}")
+                    
+                    if response.status_code == 200:
+                        route = response.json()
+                        if route['id'] == route_id:
+                            self.log_test("GET Route by ID", True, f"Retrieved route {route_id} with correct details")
+                            return True
+                        else:
+                            self.log_test("GET Route by ID", False, f"Unexpected route data: {route.get('id', 'Unknown')}")
+                    else:
+                        self.log_test("GET Route by ID", False, f"HTTP {response.status_code}: {response.text}")
+                else:
+                    self.log_test("GET Route by ID", False, "No routes found to test with")
+            else:
+                self.log_test("GET Route by ID", False, "Could not fetch routes for testing")
+                
+        except Exception as e:
+            self.log_test("GET Route by ID", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_create_route(self):
+        """Test POST /api/routes/ - create new route"""
+        try:
+            new_route = {
+                "name": "Test Route",
+                "technician_id": "tech-001",
+                "technician_name": "Mike Johnson",
+                "day": "Saturday",
+                "jobs": ["job-001", "job-002"],
+                "estimated_duration": 90
+            }
+            
+            response = self.session.post(f"{self.base_url}/routes/", json=new_route)
+            
+            if response.status_code == 201:
+                route = response.json()
+                if route['name'] == 'Test Route' and route['id'].startswith('route-'):
+                    # Store for later tests
+                    self.created_route_id = route['id']
+                    
+                    # Verify route details
+                    if route['day'] == 'Saturday' and route['total_stops'] == 2:
+                        self.log_test("POST Create Route", True, f"Created route {route['id']} with correct details")
+                        return True
+                    else:
+                        self.log_test("POST Create Route", False, "Route details incorrect")
+                else:
+                    self.log_test("POST Create Route", False, f"Unexpected route data: {route}")
+            else:
+                self.log_test("POST Create Route", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("POST Create Route", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_update_route(self):
+        """Test PUT /api/routes/{route_id} - update route"""
+        try:
+            # Use created route or get first available route
+            route_id = self.created_route_id
+            if not route_id:
+                # Get first available route
+                all_routes_response = self.session.get(f"{self.base_url}/routes/")
+                if all_routes_response.status_code == 200:
+                    routes = all_routes_response.json()
+                    if routes:
+                        route_id = routes[0]['id']
+            
+            if route_id:
+                update_data = {
+                    "day": "Sunday",
+                    "jobs": ["job-001", "job-002", "job-003"],
+                    "estimated_duration": 135
+                }
+                
+                response = self.session.put(f"{self.base_url}/routes/{route_id}", json=update_data)
+                
+                if response.status_code == 200:
+                    route = response.json()
+                    if route['day'] == 'Sunday' and route['total_stops'] == 3:
+                        self.log_test("PUT Update Route", True, f"Successfully updated route {route_id}")
+                        return True
+                    else:
+                        self.log_test("PUT Update Route", False, f"Update not reflected correctly: {route}")
+                else:
+                    self.log_test("PUT Update Route", False, f"HTTP {response.status_code}: {response.text}")
+            else:
+                self.log_test("PUT Update Route", False, "No route available for testing")
+                
+        except Exception as e:
+            self.log_test("PUT Update Route", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_add_job_to_route(self):
+        """Test POST /api/routes/{route_id}/add-job - add job to route"""
+        try:
+            # Use created route or get first available route
+            route_id = self.created_route_id
+            if not route_id:
+                # Get first available route
+                all_routes_response = self.session.get(f"{self.base_url}/routes/")
+                if all_routes_response.status_code == 200:
+                    routes = all_routes_response.json()
+                    if routes:
+                        route_id = routes[0]['id']
+            
+            if route_id:
+                # Add a mock job ID (may not exist in DB but tests the endpoint)
+                job_id = "job-test-001"
+                
+                response = self.session.post(f"{self.base_url}/routes/{route_id}/add-job", params={"job_id": job_id})
+                
+                if response.status_code == 200:
+                    route = response.json()
+                    if job_id in route['jobs']:
+                        self.log_test("POST Add Job to Route", True, f"Successfully added job {job_id} to route {route_id}")
+                        return True
+                    else:
+                        self.log_test("POST Add Job to Route", False, f"Job not added to route: {route['jobs']}")
+                else:
+                    self.log_test("POST Add Job to Route", False, f"HTTP {response.status_code}: {response.text}")
+            else:
+                self.log_test("POST Add Job to Route", False, "No route available for testing")
+                
+        except Exception as e:
+            self.log_test("POST Add Job to Route", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_remove_job_from_route(self):
+        """Test DELETE /api/routes/{route_id}/remove-job/{job_id} - remove job from route"""
+        try:
+            # Use created route or get first available route
+            route_id = self.created_route_id
+            if not route_id:
+                # Get first available route
+                all_routes_response = self.session.get(f"{self.base_url}/routes/")
+                if all_routes_response.status_code == 200:
+                    routes = all_routes_response.json()
+                    if routes:
+                        route_id = routes[0]['id']
+            
+            if route_id:
+                # Remove the job we just added
+                job_id = "job-test-001"
+                
+                response = self.session.delete(f"{self.base_url}/routes/{route_id}/remove-job/{job_id}")
+                
+                if response.status_code == 200:
+                    route = response.json()
+                    if job_id not in route['jobs']:
+                        self.log_test("DELETE Remove Job from Route", True, f"Successfully removed job {job_id} from route {route_id}")
+                        return True
+                    else:
+                        self.log_test("DELETE Remove Job from Route", False, f"Job still in route: {route['jobs']}")
+                else:
+                    self.log_test("DELETE Remove Job from Route", False, f"HTTP {response.status_code}: {response.text}")
+            else:
+                self.log_test("DELETE Remove Job from Route", False, "No route available for testing")
+                
+        except Exception as e:
+            self.log_test("DELETE Remove Job from Route", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_reorder_route_jobs(self):
+        """Test PUT /api/routes/{route_id}/reorder - reorder jobs in route"""
+        try:
+            # Use created route or get first available route
+            route_id = self.created_route_id
+            if not route_id:
+                # Get first available route
+                all_routes_response = self.session.get(f"{self.base_url}/routes/")
+                if all_routes_response.status_code == 200:
+                    routes = all_routes_response.json()
+                    if routes:
+                        route_id = routes[0]['id']
+            
+            if route_id:
+                # Reorder jobs (reverse order)
+                reorder_data = {
+                    "jobs": ["job-003", "job-002", "job-001"]
+                }
+                
+                response = self.session.put(f"{self.base_url}/routes/{route_id}/reorder", json=reorder_data)
+                
+                if response.status_code == 200:
+                    route = response.json()
+                    if route['jobs'] == reorder_data['jobs']:
+                        self.log_test("PUT Reorder Route Jobs", True, f"Successfully reordered jobs in route {route_id}")
+                        return True
+                    else:
+                        self.log_test("PUT Reorder Route Jobs", False, f"Jobs not reordered correctly: {route['jobs']}")
+                else:
+                    self.log_test("PUT Reorder Route Jobs", False, f"HTTP {response.status_code}: {response.text}")
+            else:
+                self.log_test("PUT Reorder Route Jobs", False, "No route available for testing")
+                
+        except Exception as e:
+            self.log_test("PUT Reorder Route Jobs", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_delete_route(self):
+        """Test DELETE /api/routes/{route_id} - delete route"""
+        try:
+            # Only delete if we created a test route
+            if self.created_route_id:
+                response = self.session.delete(f"{self.base_url}/routes/{self.created_route_id}")
+                
+                if response.status_code == 204:
+                    # Verify route is actually deleted
+                    verify_response = self.session.get(f"{self.base_url}/routes/{self.created_route_id}")
+                    if verify_response.status_code == 404:
+                        self.log_test("DELETE Route", True, f"Successfully deleted route {self.created_route_id}")
+                        return True
+                    else:
+                        self.log_test("DELETE Route", False, "Route still exists after deletion")
+                else:
+                    self.log_test("DELETE Route", False, f"HTTP {response.status_code}: {response.text}")
+            else:
+                self.log_test("DELETE Route", True, "Skipped - no test route was created")
+                return True
+                
+        except Exception as e:
+            self.log_test("DELETE Route", False, f"Exception: {str(e)}")
+        
+        return False
+    
     # ===== ERROR HANDLING TESTS =====
     
     def test_nonexistent_quote(self):
