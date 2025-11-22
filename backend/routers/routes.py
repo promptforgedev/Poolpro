@@ -89,8 +89,13 @@ async def create_route(route_data: RouteCreate):
     route = Route(**route_data.model_dump())
     route.total_stops = len(route.jobs)
     
+    # Convert to dict and serialize datetime to ISO string for MongoDB
+    doc = route.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    
     # Insert into database
-    await routes_collection.insert_one(route.model_dump())
+    await db.routes.insert_one(doc)
     
     return route
 
