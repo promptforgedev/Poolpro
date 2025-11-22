@@ -345,6 +345,67 @@ backend:
         agent: "testing"
         comment: "Database seeding working correctly. Successfully populated database with 9 alerts (alert-001 through alert-009) with realistic data covering all alert types and severities. 7 unresolved alerts include: chemical alerts (low chlorine/high severity, high pH/medium severity, low TA/low severity), flow alert (reduced flow/high severity), leak alert (water leak/high severity), time alert (service time exceeded/medium severity), cost alert (budget exceeded/medium severity). 2 resolved historical alerts (high CYA/high severity, filter cleaning/medium severity) with proper resolved_at timestamps. All seeded data accessible through API endpoints with correct structure, relationships, and filtering capabilities."
 
+
+  - task: "Reports API endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routers/reports.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created reports router with 6 endpoints: GET /api/reports/revenue (revenue breakdown by period with monthly breakdown), GET /api/reports/jobs-performance (job completion statistics by service type), GET /api/reports/customer-stats (customer statistics with autopay tracking), GET /api/reports/technician-performance (technician performance metrics), GET /api/reports/financial-summary (overall financial summary with quotes/invoices), GET /api/reports/dashboard-stats (key statistics for dashboard). All endpoints aggregate data from MongoDB collections. Registered in server.py and backend restarted successfully."
+
+  - task: "Customer authentication API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routers/auth.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created auth router with JWT-based authentication: POST /api/auth/register (register customer with customer_id, email, password), POST /api/auth/login (login with email/password, returns JWT token), GET /api/auth/me (get current authenticated customer info - protected). Implemented password hashing with bcrypt/passlib, JWT token generation with python-jose. Token expires in 7 days. Uses OAuth2PasswordBearer for token validation. Registered in server.py and backend restarted successfully."
+
+  - task: "Customer authentication models"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added CustomerAuth, CustomerRegister, CustomerLogin, Token, TokenData models. CustomerAuth includes id (auth-{uuid}), customer_id (links to Customer), email, password_hash, created_at, updated_at. CustomerRegister for registration (customer_id, email, password). CustomerLogin for login (email, password). Token response model with access_token, token_type, customer_id, customer_name. TokenData for JWT payload parsing."
+
+  - task: "Customer authentication data seeding"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/seed_customer_auth.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created seed script for customer auth. Successfully seeded 5 customer auth records with default password 'password123' for all test accounts. Test accounts: john.anderson@email.com, sarah.mitchell@email.com, michael.torres@email.com, emily.roberts@email.com, david.chen@email.com. All use password 'password123'. Auth records link to existing customers via customer_id."
+
+  - task: "Customer portal API endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routers/portal.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created portal router with 7 JWT-protected endpoints: GET /api/portal/pools (customer's pools with details), GET /api/portal/invoices (customer's invoices with summary totals), GET /api/portal/invoices/{id} (specific invoice detail), GET /api/portal/jobs (customer's jobs with status breakdown), GET /api/portal/quotes (customer's quotes with status summary), GET /api/portal/service-history (all chemical readings from all pools), GET /api/portal/alerts (customer's alerts with resolved/unresolved counts). All endpoints require JWT authentication using get_current_customer dependency. Registered in server.py and backend restarted successfully."
+
 frontend:
   - task: "Customer page integration with backend API"
     implemented: true
