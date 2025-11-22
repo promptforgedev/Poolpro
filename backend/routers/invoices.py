@@ -50,7 +50,7 @@ async def create_invoice(invoice: InvoiceCreate):
 @router.put("/{invoice_id}", response_model=Invoice)
 async def update_invoice(invoice_id: str, invoice_update: InvoiceUpdate):
     """Update an invoice"""
-    existing_invoice = db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    existing_invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
     if not existing_invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
     
@@ -67,9 +67,9 @@ async def update_invoice(invoice_id: str, invoice_update: InvoiceUpdate):
             update_data["status"] = "paid"
             update_data["paid_date"] = datetime.now(timezone.utc).isoformat()
     
-    db.invoices.update_one({"id": invoice_id}, {"$set": update_data})
+    await db.invoices.update_one({"id": invoice_id}, {"$set": update_data})
     
-    updated_invoice = db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    updated_invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
     return Invoice(**updated_invoice)
 
 
