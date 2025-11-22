@@ -7,7 +7,7 @@ Phase 2: Tests Job Management Workflow (Quotes, Jobs, Invoices)
 import requests
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 # Backend URL from environment
 BACKEND_URL = "https://swimsys.preview.emergentagent.com/api"
