@@ -201,7 +201,6 @@ async def get_technician_performance():
 @router.get("/financial-summary")
 async def get_financial_summary():
     """Get overall financial summary"""
-    db = await init_db()
     
     # Get all invoices
     invoices = await db.invoices.find({}).to_list(1000)
