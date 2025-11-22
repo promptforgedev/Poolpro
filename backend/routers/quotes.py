@@ -58,7 +58,7 @@ async def update_quote(quote_id: str, quote_update: QuoteUpdate):
 @router.delete("/{quote_id}")
 async def delete_quote(quote_id: str):
     """Delete a quote"""
-    result = db.quotes.delete_one({"id": quote_id})
+    result = await db.quotes.delete_one({"id": quote_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Quote not found")
     return {"message": "Quote deleted successfully"}
