@@ -1,16 +1,16 @@
 from fastapi import APIRouter, HTTPException
-from motor.motor_asyncio import AsyncIOMotorClient
 from typing import Optional
 from datetime import datetime, timedelta
-import os
 
-router = APIRouter(prefix="/api/reports", tags=["reports"])
+router = APIRouter(prefix="/reports", tags=["reports"])
 
-# MongoDB connection
-async def init_db():
-    mongo_url = os.environ.get('MONGO_URL')
-    client = AsyncIOMotorClient(mongo_url)
-    return client.poolpro
+# MongoDB will be accessed from server.py
+db = None
+
+def init_db(database):
+    """Initialize database connection"""
+    global db
+    db = database
 
 @router.get("/revenue")
 async def get_revenue_report(
