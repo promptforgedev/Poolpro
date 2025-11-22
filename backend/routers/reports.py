@@ -84,7 +84,6 @@ async def get_revenue_report(
 @router.get("/jobs-performance")
 async def get_jobs_performance():
     """Get job completion statistics"""
-    db = await init_db()
     
     # Get all jobs
     jobs = await db.jobs.find({}).to_list(1000)
