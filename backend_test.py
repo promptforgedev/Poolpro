@@ -17,7 +17,9 @@ class PoolProAPITester:
         self.base_url = BACKEND_URL
         self.session = requests.Session()
         self.test_results = []
-        self.created_customer_id = None
+        self.created_quote_id = None
+        self.created_job_id = None
+        self.created_invoice_id = None
         
     def log_test(self, test_name, success, message, response_data=None):
         """Log test results"""
