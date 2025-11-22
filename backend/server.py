@@ -73,6 +73,8 @@ customers.init_db(db)
 quotes.init_db(db)
 jobs.init_db(db)
 invoices.init_db(db)
+technicians.init_db(db)
+routes.init_db(db)
 
 # Include additional routers in api_router
 api_router.include_router(customers.router)
