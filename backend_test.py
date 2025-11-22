@@ -10,7 +10,7 @@ import sys
 from datetime import datetime, timezone, timedelta
 
 # Backend URL from environment
-BACKEND_URL = "https://pooltask.preview.emergentagent.com/api"
+BACKEND_URL = "https://aquamanage-9.preview.emergentagent.com/api"
 
 class PoolProAPITester:
     def __init__(self):
