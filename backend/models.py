@@ -348,3 +348,38 @@ class AlertCreate(BaseModel):
 class AlertUpdate(BaseModel):
     resolved: Optional[bool] = None
     resolved_at: Optional[datetime] = None
+
+
+
+# Auth Models for Customer Portal
+class CustomerAuth(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: f"auth-{str(uuid.uuid4())[:8]}")
+    customer_id: str  # Links to Customer.id
+    email: str
+    password_hash: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class CustomerRegister(BaseModel):
+    customer_id: str
+    email: str
+    password: str
+
+
+class CustomerLogin(BaseModel):
+    email: str
+    password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    customer_id: str
+    customer_name: str
+
+
+class TokenData(BaseModel):
+    customer_id: Optional[str] = None
