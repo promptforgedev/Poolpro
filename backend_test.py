@@ -1285,44 +1285,36 @@ class PoolProAPITester:
         return False
     
     def run_all_tests(self):
-        """Run all Phase 2 backend API tests"""
-        print(f"🧪 Starting PoolPro Phase 2 Backend API Tests")
+        """Run all Phase 3 backend API tests"""
+        print(f"🧪 Starting PoolPro Phase 3 Backend API Tests")
         print(f"🔗 Backend URL: {self.base_url}")
         print("=" * 60)
         
         # Test sequence - organized by API group
         tests = [
-            # Quotes API Tests
-            self.test_get_all_quotes,
-            self.test_get_quote_by_id,
-            self.test_create_quote,
-            self.test_update_quote,
-            self.test_approve_quote,
-            self.test_decline_quote,
-            self.test_delete_quote,
+            # Technicians API Tests
+            self.test_get_all_technicians,
+            self.test_get_technician_by_id,
+            self.test_create_technician,
+            self.test_update_technician,
+            self.test_delete_technician,
             
-            # Jobs API Tests
-            self.test_get_all_jobs,
-            self.test_get_job_by_id,
-            self.test_create_job,
-            self.test_update_job,
-            self.test_start_job,
-            self.test_complete_job,
-            self.test_get_jobs_by_date,
-            self.test_get_jobs_by_technician,
-            self.test_delete_job,
-            
-            # Invoices API Tests
-            self.test_get_all_invoices,
-            self.test_get_invoice_by_id,
-            self.test_create_invoice,
-            self.test_update_invoice_payment,
-            self.test_delete_invoice,
+            # Routes API Tests
+            self.test_get_all_routes,
+            self.test_get_routes_filtered_by_day,
+            self.test_get_routes_by_day,
+            self.test_get_routes_by_technician,
+            self.test_get_route_by_id,
+            self.test_create_route,
+            self.test_update_route,
+            self.test_add_job_to_route,
+            self.test_remove_job_from_route,
+            self.test_reorder_route_jobs,
+            self.test_delete_route,
             
             # Error Handling Tests
-            self.test_nonexistent_quote,
-            self.test_nonexistent_job,
-            self.test_nonexistent_invoice
+            self.test_nonexistent_technician,
+            self.test_nonexistent_route
         ]
         
         passed = 0
