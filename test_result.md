@@ -261,7 +261,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Customer page integration with backend API"
+    - "Quote CRUD API endpoints"
+    - "Job CRUD API endpoints"
+    - "Invoice CRUD API endpoints"
+    - "Job management database models"
+    - "Job management data seeding"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
