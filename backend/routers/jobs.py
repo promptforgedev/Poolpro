@@ -45,7 +45,7 @@ async def create_job(job: JobCreate):
 @router.put("/{job_id}", response_model=Job)
 async def update_job(job_id: str, job_update: JobUpdate):
     """Update a job"""
-    existing_job = db.jobs.find_one({"id": job_id}, {"_id": 0})
+    existing_job = await db.jobs.find_one({"id": job_id}, {"_id": 0})
     if not existing_job:
         raise HTTPException(status_code=404, detail="Job not found")
     
@@ -56,9 +56,9 @@ async def update_job(job_id: str, job_update: JobUpdate):
     if update_data.get("status") == "completed":
         update_data["completed_at"] = datetime.now(timezone.utc)
     
-    db.jobs.update_one({"id": job_id}, {"$set": update_data})
+    await db.jobs.update_one({"id": job_id}, {"$set": update_data})
     
-    updated_job = db.jobs.find_one({"id": job_id}, {"_id": 0})
+    updated_job = await db.jobs.find_one({"id": job_id}, {"_id": 0})
     return Job(**updated_job)
 
 
