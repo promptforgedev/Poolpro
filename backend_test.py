@@ -33,31 +33,39 @@ class PoolProAPITester:
             "response_data": response_data
         })
     
-    def test_get_all_customers(self):
-        """Test GET /api/customers - should return 5 seeded customers"""
+    def test_get_all_quotes(self):
+        """Test GET /api/quotes - should return 4 seeded quotes"""
         try:
-            response = self.session.get(f"{self.base_url}/customers")
+            response = self.session.get(f"{self.base_url}/quotes")
             
             if response.status_code == 200:
-                customers = response.json()
-                if len(customers) == 5:
-                    # Verify customer structure
-                    customer = customers[0]
-                    required_fields = ['id', 'name', 'email', 'phone', 'address', 'status', 'pools']
-                    missing_fields = [field for field in required_fields if field not in customer]
+                quotes = response.json()
+                if len(quotes) == 4:
+                    # Verify quote structure
+                    quote = quotes[0]
+                    required_fields = ['id', 'customer_id', 'customer_name', 'status', 'items', 'subtotal', 'tax', 'total']
+                    missing_fields = [field for field in required_fields if field not in quote]
                     
                     if not missing_fields:
-                        self.log_test("GET All Customers", True, f"Retrieved {len(customers)} customers with correct structure")
-                        return True
+                        # Check for various statuses
+                        statuses = [q['status'] for q in quotes]
+                        expected_statuses = ['pending', 'approved', 'declined']
+                        has_expected_statuses = any(status in statuses for status in expected_statuses)
+                        
+                        if has_expected_statuses:
+                            self.log_test("GET All Quotes", True, f"Retrieved {len(quotes)} quotes with correct structure and various statuses")
+                            return True
+                        else:
+                            self.log_test("GET All Quotes", False, f"Missing expected statuses. Found: {statuses}")
                     else:
-                        self.log_test("GET All Customers", False, f"Missing fields in customer: {missing_fields}")
+                        self.log_test("GET All Quotes", False, f"Missing fields in quote: {missing_fields}")
                 else:
-                    self.log_test("GET All Customers", False, f"Expected 5 customers, got {len(customers)}")
+                    self.log_test("GET All Quotes", False, f"Expected 4 quotes, got {len(quotes)}")
             else:
-                self.log_test("GET All Customers", False, f"HTTP {response.status_code}: {response.text}")
+                self.log_test("GET All Quotes", False, f"HTTP {response.status_code}: {response.text}")
                 
         except Exception as e:
-            self.log_test("GET All Customers", False, f"Exception: {str(e)}")
+            self.log_test("GET All Quotes", False, f"Exception: {str(e)}")
         
         return False
     
