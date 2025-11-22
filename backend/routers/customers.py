@@ -1,17 +1,18 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
 from datetime import datetime, timezone
-from motor.motor_asyncio import AsyncIOMotorClient
-import os
 
 from models import Customer, CustomerCreate, CustomerUpdate, Pool, PoolCreate, ChemReading, ChemReadingCreate
 
 router = APIRouter(prefix="/api/customers", tags=["customers"])
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+# MongoDB will be accessed from server.py
+db = None
+
+def init_db(database):
+    """Initialize database connection"""
+    global db
+    db = database
 
 
 @router.get("/", response_model=List[Customer])
