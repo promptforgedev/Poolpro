@@ -68,6 +68,9 @@ async def get_status_checks():
     
     return status_checks
 
+# Initialize database connection for routers
+customers.init_db(db)
+
 # Include the router in the main app
 app.include_router(api_router)
 
