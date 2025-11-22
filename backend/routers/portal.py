@@ -99,7 +99,6 @@ async def get_customer_jobs(current_customer: dict = Depends(get_current_custome
 @router.get("/quotes")
 async def get_customer_quotes(current_customer: dict = Depends(get_current_customer)):
     """Get all quotes for authenticated customer"""
-    db = await init_db()
     
     customer_id = current_customer.get("id")
     quotes = await db.quotes.find({"customer_id": customer_id}).to_list(100)
