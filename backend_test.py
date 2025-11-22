@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Backend API Testing for Pool Management Software (PoolPro)
-Phase 4: Tests Alert System
+Phase 5: Tests Reports API, Customer Auth API, and Customer Portal API
 """
 
 import requests
