@@ -18,9 +18,15 @@ def init_db(database):
 @router.get("/", response_model=List[Technician])
 async def get_all_technicians():
     """Get all technicians"""
-    technicians = []
-    async for technician in technicians_collection.find():
-        technicians.append(Technician(**technician))
+    technicians = await db.technicians.find({}, {"_id": 0}).to_list(1000)
+    
+    # Convert ISO string timestamps back to datetime objects
+    for technician in technicians:
+        if isinstance(technician.get('created_at'), str):
+            technician['created_at'] = datetime.fromisoformat(technician['created_at'])
+        if isinstance(technician.get('updated_at'), str):
+            technician['updated_at'] = datetime.fromisoformat(technician['updated_at'])
+    
     return technicians
 
 
