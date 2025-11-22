@@ -332,15 +332,18 @@ backend:
 
   - task: "Alert data seeding"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/seed_alerts_data.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created seed script for alerts (9 total: 7 unresolved, 2 resolved). Includes realistic alerts: chemical alerts (low chlorine, high pH, low TA), flow alert (reduced flow), leak alert (water level drop), time alert (service time exceeded), cost alert (budget exceeded). Also includes 2 resolved historical alerts (high CYA, filter cleaning). Successfully seeded database with 9 alerts after ensuring customer and job data exists. Script run successfully with all alerts inserted."
+      - working: true
+        agent: "testing"
+        comment: "Database seeding working correctly. Successfully populated database with 9 alerts (alert-001 through alert-009) with realistic data covering all alert types and severities. 7 unresolved alerts include: chemical alerts (low chlorine/high severity, high pH/medium severity, low TA/low severity), flow alert (reduced flow/high severity), leak alert (water leak/high severity), time alert (service time exceeded/medium severity), cost alert (budget exceeded/medium severity). 2 resolved historical alerts (high CYA/high severity, filter cleaning/medium severity) with proper resolved_at timestamps. All seeded data accessible through API endpoints with correct structure, relationships, and filtering capabilities."
 
 frontend:
   - task: "Customer page integration with backend API"
