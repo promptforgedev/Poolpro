@@ -20,7 +20,7 @@ async def get_all_jobs(status: Optional[str] = None):
     query = {}
     if status:
         query["status"] = status
-    jobs = list(db.jobs.find(query, {"_id": 0}))
+    jobs = await db.jobs.find(query, {"_id": 0}).to_list(1000)
     return jobs
 
 
