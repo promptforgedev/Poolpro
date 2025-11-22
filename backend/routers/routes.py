@@ -231,7 +231,7 @@ async def remove_job_from_route(route_id: str, job_id: str):
 async def reorder_route_jobs(route_id: str, reorder_data: RouteJobReorder):
     """Reorder jobs in a route (for drag-drop support)"""
     # Check if route exists
-    existing = await routes_collection.find_one({"id": route_id})
+    existing = await db.routes.find_one({"id": route_id}, {"_id": 0})
     if not existing:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -242,14 +242,21 @@ async def reorder_route_jobs(route_id: str, reorder_data: RouteJobReorder):
     update_data = {
         "jobs": reorder_data.jobs,
         "total_stops": len(reorder_data.jobs),
-        "updated_at": datetime.now(timezone.utc)
+        "updated_at": datetime.now(timezone.utc).isoformat()
     }
     
-    await routes_collection.update_one(
+    await db.routes.update_one(
         {"id": route_id},
         {"$set": update_data}
     )
     
     # Fetch and return updated route
-    updated = await routes_collection.find_one({"id": route_id})
+    updated = await db.routes.find_one({"id": route_id}, {"_id": 0})
+    
+    # Convert ISO string timestamps
+    if isinstance(updated.get('created_at'), str):
+        updated['created_at'] = datetime.fromisoformat(updated['created_at'])
+    if isinstance(updated.get('updated_at'), str):
+        updated['updated_at'] = datetime.fromisoformat(updated['updated_at'])
+    
     return Route(**updated)
