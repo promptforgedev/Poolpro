@@ -10,7 +10,7 @@ import sys
 from datetime import datetime, timezone
 
 # Backend URL from environment
-BACKEND_URL = "https://swimsys.preview.emergentagent.com/api"
+BACKEND_URL = "https://pooltask.preview.emergentagent.com/api"
 
 class PoolProPhase2Tester:
     def __init__(self):
