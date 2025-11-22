@@ -23,6 +23,9 @@ class PoolProAPITester:
         self.created_technician_id = None
         self.created_route_id = None
         self.created_alert_id = None
+        self.jwt_token = None
+        self.customer_id = None
+        self.customer_name = None
         
     def log_test(self, test_name, success, message, response_data=None):
         """Log test results"""
