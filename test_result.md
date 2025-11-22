@@ -240,6 +240,54 @@ backend:
         agent: "testing"
         comment: "Database seeding working correctly. Successfully populated database with 4 quotes (pending, approved, declined statuses), 6 jobs (scheduled, in-progress, completed statuses), and 5 invoices (draft, sent, paid, overdue statuses). All entities have realistic data with proper relationships between quotes, jobs, and invoices. Seeded data includes variety of service types, technicians, and payment statuses. Data accessible through all API endpoints with correct structure and calculations."
 
+  - task: "Technician CRUD API endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routers/technicians.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created technicians router with GET all, GET by ID, POST create, PUT update, DELETE endpoints. Follows same pattern as other routers with init_db() for MongoDB connection. Includes technician color, status (active/inactive), and assigned_days fields for UI visualization and scheduling."
+
+  - task: "Route management API endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routers/routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created routes router with 11 endpoints: GET all (with day filter), GET by ID, GET by day, GET by technician, POST create, PUT update, DELETE, POST add-job, DELETE remove-job, PUT reorder. Supports full route management including job assignment and drag-drop reordering. Routes track technician_id, day, jobs list, total_stops, and estimated_duration."
+
+  - task: "Technician and Route database models"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added Technician, TechnicianCreate, TechnicianUpdate models with id, name, email, phone, color, status, assigned_days fields. Added Route, RouteCreate, RouteUpdate, RouteJobReorder models with id, name, technician_id, technician_name, day, jobs array, total_stops, estimated_duration, status fields. All models include proper validation and auto-generated IDs with prefixes (tech-, route-)."
+
+  - task: "Route and technician data seeding"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/seed_routes_data.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created seed script for technicians (4) and routes (12). Each technician has unique color and assigned days. Routes created for Monday-Friday with jobs assigned to technicians. Successfully seeded database with realistic route scheduling data. Script run successfully with 4 technicians and 12 routes inserted."
+
 frontend:
   - task: "Customer page integration with backend API"
     implemented: true
