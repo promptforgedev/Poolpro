@@ -1252,6 +1252,38 @@ class PoolProAPITester:
         
         return False
     
+    def test_nonexistent_technician(self):
+        """Test GET /api/technicians/{technician_id} with non-existent ID"""
+        try:
+            response = self.session.get(f"{self.base_url}/technicians/nonexistent-tech")
+            
+            if response.status_code == 404:
+                self.log_test("GET Non-existent Technician", True, "Correctly returned 404 for non-existent technician")
+                return True
+            else:
+                self.log_test("GET Non-existent Technician", False, f"Expected 404, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("GET Non-existent Technician", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_nonexistent_route(self):
+        """Test GET /api/routes/{route_id} with non-existent ID"""
+        try:
+            response = self.session.get(f"{self.base_url}/routes/nonexistent-route")
+            
+            if response.status_code == 404:
+                self.log_test("GET Non-existent Route", True, "Correctly returned 404 for non-existent route")
+                return True
+            else:
+                self.log_test("GET Non-existent Route", False, f"Expected 404, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("GET Non-existent Route", False, f"Exception: {str(e)}")
+        
+        return False
+    
     def run_all_tests(self):
         """Run all Phase 2 backend API tests"""
         print(f"🧪 Starting PoolPro Phase 2 Backend API Tests")
