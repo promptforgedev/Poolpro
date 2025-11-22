@@ -67,12 +67,19 @@ async def get_routes_by_technician(technician_id: str):
 @router.get("/{route_id}", response_model=Route)
 async def get_route(route_id: str):
     """Get a specific route by ID"""
-    route = await routes_collection.find_one({"id": route_id})
+    route = await db.routes.find_one({"id": route_id}, {"_id": 0})
     if not route:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Route with id {route_id} not found"
         )
+    
+    # Convert ISO string timestamps
+    if isinstance(route.get('created_at'), str):
+        route['created_at'] = datetime.fromisoformat(route['created_at'])
+    if isinstance(route.get('updated_at'), str):
+        route['updated_at'] = datetime.fromisoformat(route['updated_at'])
+    
     return Route(**route)
 
 
