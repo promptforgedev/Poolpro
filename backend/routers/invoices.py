@@ -43,7 +43,7 @@ async def create_invoice(invoice: InvoiceCreate):
     invoice_dict["paid_amount"] = 0.0
     
     new_invoice = Invoice(**invoice_dict)
-    db.invoices.insert_one(new_invoice.model_dump())
+    await db.invoices.insert_one(new_invoice.model_dump())
     return new_invoice
 
 
