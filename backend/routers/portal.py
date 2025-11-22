@@ -58,7 +58,6 @@ async def get_invoice_detail(
     current_customer: dict = Depends(get_current_customer)
 ):
     """Get specific invoice detail"""
-    db = await init_db()
     
     customer_id = current_customer.get("id")
     invoice = await db.invoices.find_one({
