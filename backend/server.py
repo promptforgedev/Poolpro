@@ -71,6 +71,9 @@ async def get_status_checks():
 # Include the router in the main app
 app.include_router(api_router)
 
+# Include additional routers
+app.include_router(customers.router)
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
