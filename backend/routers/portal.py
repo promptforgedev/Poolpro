@@ -74,7 +74,6 @@ async def get_invoice_detail(
 @router.get("/jobs")
 async def get_customer_jobs(current_customer: dict = Depends(get_current_customer)):
     """Get all jobs for authenticated customer"""
-    db = await init_db()
     
     customer_id = current_customer.get("id")
     jobs = await db.jobs.find({"customer_id": customer_id}).to_list(100)
