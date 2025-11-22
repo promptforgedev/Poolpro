@@ -250,6 +250,7 @@ const Customers = () => {
             </Card>
           ))}
         </div>
+        )}
       </div>
     </DashboardLayout>
   );
