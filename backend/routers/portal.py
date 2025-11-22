@@ -155,7 +155,6 @@ async def get_service_history(current_customer: dict = Depends(get_current_custo
 @router.get("/alerts")
 async def get_customer_alerts(current_customer: dict = Depends(get_current_customer)):
     """Get alerts related to customer's pools"""
-    db = await init_db()
     
     customer_id = current_customer.get("id")
     alerts = await db.alerts.find({"customer_id": customer_id}).to_list(100)
