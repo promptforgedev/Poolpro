@@ -275,12 +275,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Quote CRUD API endpoints"
-    - "Job CRUD API endpoints"
-    - "Invoice CRUD API endpoints"
-    - "Job management database models"
-    - "Job management data seeding"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
