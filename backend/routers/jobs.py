@@ -38,7 +38,7 @@ async def create_job(job: JobCreate):
     """Create a new job"""
     job_dict = job.model_dump()
     new_job = Job(**job_dict)
-    db.jobs.insert_one(new_job.model_dump())
+    await db.jobs.insert_one(new_job.model_dump())
     return new_job
 
 
