@@ -112,7 +112,7 @@ async def complete_job(job_id: str, completion_notes: Optional[str] = None):
 @router.get("/by-date/{date}")
 async def get_jobs_by_date(date: str):
     """Get all jobs scheduled for a specific date"""
-    jobs = list(db.jobs.find({"scheduled_date": date}, {"_id": 0}))
+    jobs = await db.jobs.find({"scheduled_date": date}, {"_id": 0}).to_list(1000)
     return jobs
 
 
