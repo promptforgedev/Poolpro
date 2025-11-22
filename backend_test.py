@@ -1285,6 +1285,345 @@ class PoolProAPITester:
         
         return False
     
+    # ===== ALERTS API TESTS =====
+    
+    def test_get_all_alerts(self):
+        """Test GET /api/alerts/ - should return 9 seeded alerts"""
+        try:
+            response = self.session.get(f"{self.base_url}/alerts/")
+            
+            if response.status_code == 200:
+                alerts = response.json()
+                if len(alerts) == 9:
+                    # Verify alert structure
+                    alert = alerts[0]
+                    required_fields = ['id', 'type', 'severity', 'title', 'message', 'customer_id', 'customer_name', 'resolved', 'created_at', 'updated_at']
+                    missing_fields = [field for field in required_fields if field not in alert]
+                    
+                    if not missing_fields:
+                        # Check for various types and severities
+                        types = [a['type'] for a in alerts]
+                        severities = [a['severity'] for a in alerts]
+                        expected_types = ['chemical', 'flow', 'leak', 'time', 'cost']
+                        expected_severities = ['high', 'medium', 'low']
+                        
+                        has_expected_types = any(alert_type in types for alert_type in expected_types)
+                        has_expected_severities = any(severity in severities for severity in expected_severities)
+                        
+                        if has_expected_types and has_expected_severities:
+                            self.log_test("GET All Alerts", True, f"Retrieved {len(alerts)} alerts with correct structure and various types/severities")
+                            return True
+                        else:
+                            self.log_test("GET All Alerts", False, f"Missing expected types/severities. Types: {set(types)}, Severities: {set(severities)}")
+                    else:
+                        self.log_test("GET All Alerts", False, f"Missing fields in alert: {missing_fields}")
+                else:
+                    self.log_test("GET All Alerts", False, f"Expected 9 alerts, got {len(alerts)}")
+            else:
+                self.log_test("GET All Alerts", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET All Alerts", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_alerts_filtered_unresolved(self):
+        """Test GET /api/alerts/?resolved=false - should return 7 unresolved alerts"""
+        try:
+            response = self.session.get(f"{self.base_url}/alerts/?resolved=false")
+            
+            if response.status_code == 200:
+                alerts = response.json()
+                if len(alerts) == 7:
+                    # Verify all alerts are unresolved
+                    all_unresolved = all(not alert['resolved'] for alert in alerts)
+                    if all_unresolved:
+                        self.log_test("GET Alerts Filtered Unresolved", True, f"Retrieved {len(alerts)} unresolved alerts")
+                        return True
+                    else:
+                        self.log_test("GET Alerts Filtered Unresolved", False, "Some alerts are resolved when filtering for unresolved")
+                else:
+                    self.log_test("GET Alerts Filtered Unresolved", False, f"Expected 7 unresolved alerts, got {len(alerts)}")
+            else:
+                self.log_test("GET Alerts Filtered Unresolved", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Alerts Filtered Unresolved", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_alerts_filtered_resolved(self):
+        """Test GET /api/alerts/?resolved=true - should return 2 resolved alerts"""
+        try:
+            response = self.session.get(f"{self.base_url}/alerts/?resolved=true")
+            
+            if response.status_code == 200:
+                alerts = response.json()
+                if len(alerts) == 2:
+                    # Verify all alerts are resolved
+                    all_resolved = all(alert['resolved'] for alert in alerts)
+                    if all_resolved:
+                        self.log_test("GET Alerts Filtered Resolved", True, f"Retrieved {len(alerts)} resolved alerts")
+                        return True
+                    else:
+                        self.log_test("GET Alerts Filtered Resolved", False, "Some alerts are unresolved when filtering for resolved")
+                else:
+                    self.log_test("GET Alerts Filtered Resolved", False, f"Expected 2 resolved alerts, got {len(alerts)}")
+            else:
+                self.log_test("GET Alerts Filtered Resolved", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Alerts Filtered Resolved", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_alerts_filtered_by_severity(self):
+        """Test GET /api/alerts/?severity=high - filter by severity"""
+        try:
+            response = self.session.get(f"{self.base_url}/alerts/?severity=high")
+            
+            if response.status_code == 200:
+                alerts = response.json()
+                if len(alerts) >= 1:
+                    # Verify all alerts are high severity
+                    all_high = all(alert['severity'] == 'high' for alert in alerts)
+                    if all_high:
+                        self.log_test("GET Alerts Filtered by Severity", True, f"Retrieved {len(alerts)} high severity alerts")
+                        return True
+                    else:
+                        self.log_test("GET Alerts Filtered by Severity", False, "Some alerts are not high severity when filtering for high")
+                else:
+                    self.log_test("GET Alerts Filtered by Severity", False, f"Expected at least 1 high severity alert, got {len(alerts)}")
+            else:
+                self.log_test("GET Alerts Filtered by Severity", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Alerts Filtered by Severity", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_alerts_filtered_by_type(self):
+        """Test GET /api/alerts/?type=chemical - filter by type"""
+        try:
+            response = self.session.get(f"{self.base_url}/alerts/?type=chemical")
+            
+            if response.status_code == 200:
+                alerts = response.json()
+                if len(alerts) >= 1:
+                    # Verify all alerts are chemical type
+                    all_chemical = all(alert['type'] == 'chemical' for alert in alerts)
+                    if all_chemical:
+                        self.log_test("GET Alerts Filtered by Type", True, f"Retrieved {len(alerts)} chemical alerts")
+                        return True
+                    else:
+                        self.log_test("GET Alerts Filtered by Type", False, "Some alerts are not chemical type when filtering for chemical")
+                else:
+                    self.log_test("GET Alerts Filtered by Type", False, f"Expected at least 1 chemical alert, got {len(alerts)}")
+            else:
+                self.log_test("GET Alerts Filtered by Type", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Alerts Filtered by Type", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_alert_by_id(self):
+        """Test GET /api/alerts/{alert_id} with existing alert"""
+        try:
+            # Test with seeded alert "alert-001"
+            response = self.session.get(f"{self.base_url}/alerts/alert-001")
+            
+            if response.status_code == 200:
+                alert = response.json()
+                if alert['id'] == 'alert-001' and alert['type'] == 'chemical':
+                    # Verify alert details
+                    if alert['severity'] == 'high' and alert['title'] == 'Low Chlorine Level':
+                        self.log_test("GET Alert by ID", True, "Retrieved alert with correct details")
+                        return True
+                    else:
+                        self.log_test("GET Alert by ID", False, f"Incorrect alert details: {alert}")
+                else:
+                    self.log_test("GET Alert by ID", False, f"Unexpected alert data: {alert.get('id', 'Unknown')}")
+            else:
+                self.log_test("GET Alert by ID", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Alert by ID", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_create_alert(self):
+        """Test POST /api/alerts/ - create new alert"""
+        try:
+            new_alert = {
+                "type": "chemical",
+                "severity": "medium",
+                "title": "Test Chemical Alert",
+                "message": "This is a test chemical alert for API testing",
+                "customer_id": "cust-1",
+                "customer_name": "John Anderson",
+                "pool_id": "pool-1",
+                "pool_name": "Main Pool"
+            }
+            
+            response = self.session.post(f"{self.base_url}/alerts/", json=new_alert)
+            
+            if response.status_code == 200:
+                alert = response.json()
+                if alert['title'] == 'Test Chemical Alert' and alert['id'].startswith('alert-'):
+                    # Store for later tests
+                    self.created_alert_id = alert['id']
+                    
+                    # Verify alert details
+                    if alert['type'] == 'chemical' and alert['severity'] == 'medium' and not alert['resolved']:
+                        self.log_test("POST Create Alert", True, f"Created alert {alert['id']} with correct details")
+                        return True
+                    else:
+                        self.log_test("POST Create Alert", False, "Alert details incorrect")
+                else:
+                    self.log_test("POST Create Alert", False, f"Unexpected alert data: {alert}")
+            else:
+                self.log_test("POST Create Alert", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("POST Create Alert", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_update_alert(self):
+        """Test PUT /api/alerts/{alert_id} - update alert"""
+        try:
+            # Use created alert or fallback to alert-001
+            alert_id = self.created_alert_id or "alert-001"
+            
+            update_data = {
+                "resolved": True
+            }
+            
+            response = self.session.put(f"{self.base_url}/alerts/{alert_id}", json=update_data)
+            
+            if response.status_code == 200:
+                alert = response.json()
+                if alert['resolved'] and alert.get('resolved_at'):
+                    self.log_test("PUT Update Alert", True, f"Successfully updated alert {alert_id} to resolved with timestamp")
+                    return True
+                else:
+                    self.log_test("PUT Update Alert", False, f"Update not reflected correctly: resolved={alert['resolved']}, resolved_at={alert.get('resolved_at')}")
+            else:
+                self.log_test("PUT Update Alert", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("PUT Update Alert", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_resolve_alert(self):
+        """Test POST /api/alerts/{alert_id}/resolve - mark alert as resolved"""
+        try:
+            # Use alert-002 which should be unresolved
+            alert_id = "alert-002"
+            
+            response = self.session.post(f"{self.base_url}/alerts/{alert_id}/resolve")
+            
+            if response.status_code == 200:
+                alert = response.json()
+                if alert['resolved'] and alert.get('resolved_at'):
+                    self.log_test("POST Resolve Alert", True, f"Successfully resolved alert {alert_id} with timestamp")
+                    return True
+                else:
+                    self.log_test("POST Resolve Alert", False, f"Alert not resolved correctly: resolved={alert['resolved']}, resolved_at={alert.get('resolved_at')}")
+            else:
+                self.log_test("POST Resolve Alert", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("POST Resolve Alert", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_get_alert_stats(self):
+        """Test GET /api/alerts/stats/summary - get alert statistics"""
+        try:
+            response = self.session.get(f"{self.base_url}/alerts/stats/summary")
+            
+            if response.status_code == 200:
+                stats = response.json()
+                required_fields = ['total', 'unresolved', 'resolved', 'by_severity', 'by_type']
+                missing_fields = [field for field in required_fields if field not in stats]
+                
+                if not missing_fields:
+                    # Verify by_severity structure
+                    severity_fields = ['high', 'medium', 'low']
+                    severity_missing = [field for field in severity_fields if field not in stats['by_severity']]
+                    
+                    # Verify by_type structure
+                    type_fields = ['chemical', 'flow', 'leak', 'time', 'cost']
+                    type_missing = [field for field in type_fields if field not in stats['by_type']]
+                    
+                    if not severity_missing and not type_missing:
+                        # Verify totals make sense
+                        if stats['total'] == stats['unresolved'] + stats['resolved']:
+                            self.log_test("GET Alert Stats", True, f"Retrieved alert statistics: {stats['total']} total, {stats['unresolved']} unresolved, {stats['resolved']} resolved")
+                            return True
+                        else:
+                            self.log_test("GET Alert Stats", False, f"Total count mismatch: total={stats['total']}, unresolved={stats['unresolved']}, resolved={stats['resolved']}")
+                    else:
+                        self.log_test("GET Alert Stats", False, f"Missing severity/type fields: {severity_missing}, {type_missing}")
+                else:
+                    self.log_test("GET Alert Stats", False, f"Missing fields in stats: {missing_fields}")
+            else:
+                self.log_test("GET Alert Stats", False, f"HTTP {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("GET Alert Stats", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_delete_alert(self):
+        """Test DELETE /api/alerts/{alert_id} - delete alert"""
+        try:
+            # Only delete if we created a test alert
+            if self.created_alert_id:
+                response = self.session.delete(f"{self.base_url}/alerts/{self.created_alert_id}")
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if "deleted successfully" in result.get('message', ''):
+                        # Verify alert is actually deleted
+                        verify_response = self.session.get(f"{self.base_url}/alerts/{self.created_alert_id}")
+                        if verify_response.status_code == 404:
+                            self.log_test("DELETE Alert", True, f"Successfully deleted alert {self.created_alert_id}")
+                            return True
+                        else:
+                            self.log_test("DELETE Alert", False, "Alert still exists after deletion")
+                    else:
+                        self.log_test("DELETE Alert", False, f"Unexpected response: {result}")
+                else:
+                    self.log_test("DELETE Alert", False, f"HTTP {response.status_code}: {response.text}")
+            else:
+                self.log_test("DELETE Alert", True, "Skipped - no test alert was created")
+                return True
+                
+        except Exception as e:
+            self.log_test("DELETE Alert", False, f"Exception: {str(e)}")
+        
+        return False
+    
+    def test_nonexistent_alert(self):
+        """Test GET /api/alerts/{alert_id} with non-existent ID"""
+        try:
+            response = self.session.get(f"{self.base_url}/alerts/nonexistent-alert")
+            
+            if response.status_code == 404:
+                self.log_test("GET Non-existent Alert", True, "Correctly returned 404 for non-existent alert")
+                return True
+            else:
+                self.log_test("GET Non-existent Alert", False, f"Expected 404, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("GET Non-existent Alert", False, f"Exception: {str(e)}")
+        
+        return False
+    
     def run_all_tests(self):
         """Run all Phase 3 backend API tests"""
         print(f"🧪 Starting PoolPro Phase 3 Backend API Tests")
