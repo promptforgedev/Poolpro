@@ -19,7 +19,6 @@ async def get_revenue_report(
     period: str = "month"  # day, week, month, year
 ):
     """Get revenue breakdown by time period"""
-    db = await init_db()
     
     # Build date filter
     date_filter = {}
