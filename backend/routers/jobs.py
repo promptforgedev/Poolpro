@@ -27,7 +27,7 @@ async def get_all_jobs(status: Optional[str] = None):
 @router.get("/{job_id}", response_model=Job)
 async def get_job(job_id: str):
     """Get a specific job by ID"""
-    job = db.jobs.find_one({"id": job_id}, {"_id": 0})
+    job = await db.jobs.find_one({"id": job_id}, {"_id": 0})
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     return job
