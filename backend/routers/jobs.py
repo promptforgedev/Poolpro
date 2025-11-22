@@ -65,7 +65,7 @@ async def update_job(job_id: str, job_update: JobUpdate):
 @router.delete("/{job_id}")
 async def delete_job(job_id: str):
     """Delete a job"""
-    result = db.jobs.delete_one({"id": job_id})
+    result = await db.jobs.delete_one({"id": job_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Job not found")
     return {"message": "Job deleted successfully"}
