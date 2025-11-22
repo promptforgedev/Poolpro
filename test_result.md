@@ -165,6 +165,66 @@ backend:
         agent: "testing"
         comment: "Database seeding working correctly. Successfully populated database with 5 customers (cust-1 through cust-5) with realistic data including pools and chemical readings. All customers have proper structure with pools containing historical chemical readings. Data includes variety of pool types (In-Ground, Above-Ground, Spa/Hot Tub) and different customer statuses."
 
+  - task: "Quote CRUD API endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routers/quotes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created quotes router with GET all, GET by ID, POST create, PUT update, DELETE endpoints. Added approve/decline quote actions. Connected to MongoDB."
+
+  - task: "Job CRUD API endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routers/jobs.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created jobs router with GET all (with status filter), GET by ID, POST create, PUT update, DELETE endpoints. Added start/complete job actions. Includes get by date and by technician endpoints."
+
+  - task: "Invoice CRUD API endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routers/invoices.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created invoices router with GET all (with status filter), GET by ID, POST create, PUT update, DELETE endpoints. Added send invoice and pay invoice actions. Includes get by customer endpoint."
+
+  - task: "Job management database models"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added Quote, Job, and Invoice models with proper validation. Includes QuoteItem, InvoiceLineItem models. All create/update models defined."
+
+  - task: "Job management data seeding"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/seed_jobs_data.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created seed script for quotes (4), jobs (6), and invoices (5) with realistic data. Includes various statuses and relationships between entities."
+
 frontend:
   - task: "Customer page integration with backend API"
     implemented: true
