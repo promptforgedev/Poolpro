@@ -129,5 +129,5 @@ async def pay_invoice(invoice_id: str, amount: float):
 @router.get("/by-customer/{customer_id}")
 async def get_invoices_by_customer(customer_id: str):
     """Get all invoices for a specific customer"""
-    invoices = list(db.invoices.find({"customer_id": customer_id}, {"_id": 0}))
+    invoices = await db.invoices.find({"customer_id": customer_id}, {"_id": 0}).to_list(1000)
     return invoices
