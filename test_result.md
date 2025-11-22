@@ -371,7 +371,10 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Alert CRUD API endpoints"
+    - "Alert database models"
+    - "Alert data seeding"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
