@@ -323,7 +323,11 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Technician CRUD API endpoints"
+    - "Route management API endpoints"
+    - "Technician and Route database models"
+    - "Route and technician data seeding"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
