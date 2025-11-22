@@ -140,7 +140,7 @@ async def update_route(route_id: str, route_data: RouteUpdate):
 @router.delete("/{route_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_route(route_id: str):
     """Delete a route"""
-    result = await routes_collection.delete_one({"id": route_id})
+    result = await db.routes.delete_one({"id": route_id})
     
     if result.deleted_count == 0:
         raise HTTPException(
