@@ -90,7 +90,7 @@ async def start_job(job_id: str):
 @router.post("/{job_id}/complete")
 async def complete_job(job_id: str, completion_notes: Optional[str] = None):
     """Mark a job as completed"""
-    job = db.jobs.find_one({"id": job_id}, {"_id": 0})
+    job = await db.jobs.find_one({"id": job_id}, {"_id": 0})
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
@@ -103,9 +103,9 @@ async def complete_job(job_id: str, completion_notes: Optional[str] = None):
     if completion_notes:
         update_data["completion_notes"] = completion_notes
     
-    db.jobs.update_one({"id": job_id}, {"$set": update_data})
+    await db.jobs.update_one({"id": job_id}, {"$set": update_data})
     
-    updated_job = db.jobs.find_one({"id": job_id}, {"_id": 0})
+    updated_job = await db.jobs.find_one({"id": job_id}, {"_id": 0})
     return {"message": "Job completed", "job": updated_job}
 
 
