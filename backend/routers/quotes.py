@@ -42,16 +42,16 @@ async def create_quote(quote: QuoteCreate):
 @router.put("/{quote_id}", response_model=Quote)
 async def update_quote(quote_id: str, quote_update: QuoteUpdate):
     """Update a quote"""
-    existing_quote = db.quotes.find_one({"id": quote_id}, {"_id": 0})
+    existing_quote = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
     if not existing_quote:
         raise HTTPException(status_code=404, detail="Quote not found")
     
     update_data = quote_update.model_dump(exclude_unset=True)
     update_data["updated_at"] = datetime.now(timezone.utc)
     
-    db.quotes.update_one({"id": quote_id}, {"$set": update_data})
+    await db.quotes.update_one({"id": quote_id}, {"$set": update_data})
     
-    updated_quote = db.quotes.find_one({"id": quote_id}, {"_id": 0})
+    updated_quote = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
     return Quote(**updated_quote)
 
 
