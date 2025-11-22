@@ -101,7 +101,7 @@ async def update_technician(technician_id: str, technician_data: TechnicianUpdat
 @router.delete("/{technician_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_technician(technician_id: str):
     """Delete a technician"""
-    result = await technicians_collection.delete_one({"id": technician_id})
+    result = await db.technicians.delete_one({"id": technician_id})
     
     if result.deleted_count == 0:
         raise HTTPException(
