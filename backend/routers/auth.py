@@ -1,15 +1,22 @@
 from fastapi import APIRouter, HTTPException, Depends, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from motor.motor_asyncio import AsyncIOMotorClient
+from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 import os
 
-from ..models import CustomerAuth, CustomerRegister, CustomerLogin, Token, TokenData
+from models import CustomerAuth, CustomerRegister, CustomerLogin, Token, TokenData
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+# MongoDB will be accessed from server.py
+db = None
+
+def init_db(database):
+    """Initialize database connection"""
+    global db
+    db = database
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -20,12 +27,6 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
-
-# MongoDB connection
-async def init_db():
-    mongo_url = os.environ.get('MONGO_URL')
-    client = AsyncIOMotorClient(mongo_url)
-    return client.poolpro
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
