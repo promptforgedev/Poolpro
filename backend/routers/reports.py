@@ -268,7 +268,6 @@ async def get_financial_summary():
 @router.get("/dashboard-stats")
 async def get_dashboard_statistics():
     """Get key statistics for dashboard"""
-    db = await init_db()
     
     # Get counts
     customers = await db.customers.count_documents({})
