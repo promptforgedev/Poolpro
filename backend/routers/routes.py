@@ -37,9 +37,15 @@ async def get_all_routes(day: Optional[str] = Query(None, description="Filter by
 @router.get("/by-day/{day}", response_model=List[Route])
 async def get_routes_by_day(day: str):
     """Get all routes for a specific day"""
-    routes = []
-    async for route in routes_collection.find({"day": day}):
-        routes.append(Route(**route))
+    routes = await db.routes.find({"day": day}, {"_id": 0}).to_list(1000)
+    
+    # Convert ISO string timestamps back to datetime objects
+    for route in routes:
+        if isinstance(route.get('created_at'), str):
+            route['created_at'] = datetime.fromisoformat(route['created_at'])
+        if isinstance(route.get('updated_at'), str):
+            route['updated_at'] = datetime.fromisoformat(route['updated_at'])
+    
     return routes
 
 
