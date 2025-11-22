@@ -20,6 +20,8 @@ class PoolProAPITester:
         self.created_quote_id = None
         self.created_job_id = None
         self.created_invoice_id = None
+        self.created_technician_id = None
+        self.created_route_id = None
         
     def log_test(self, test_name, success, message, response_data=None):
         """Log test results"""
