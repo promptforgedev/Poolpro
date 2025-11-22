@@ -24,7 +24,7 @@ async def get_all_quotes():
 @router.get("/{quote_id}", response_model=Quote)
 async def get_quote(quote_id: str):
     """Get a specific quote by ID"""
-    quote = db.quotes.find_one({"id": quote_id}, {"_id": 0})
+    quote = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
     if not quote:
         raise HTTPException(status_code=404, detail="Quote not found")
     return quote
